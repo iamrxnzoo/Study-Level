@@ -25,7 +25,8 @@ export function AppProvider({ children }) {
       petType: "cat",
       subjects: ["Math", "Science", "English", "Filipino"],
       accessoryPositions: {},
-      isSetupComplete: false // NEW: Tracks if first-time setup is done
+      isSetupComplete: false, // Fixed: Added comma here
+      theme: 'cute' // Added theme here
     };
   });
 
@@ -42,6 +43,7 @@ export function AppProvider({ children }) {
     setAnalytics(prev => [...prev, { timestamp: new Date().toISOString(), action, details }]);
   };
 
+  // STREAK CHECKER
   useEffect(() => {
     if (!user.lastActiveDate) return; 
     const today = new Date(); today.setHours(0,0,0,0);
@@ -59,7 +61,6 @@ export function AppProvider({ children }) {
     }
   }, []); 
 
-  // NEW: Setup function for first-time users
   const completeSetup = (realName, petName) => {
     setUser(prev => ({ 
       ...prev, 
@@ -68,6 +69,11 @@ export function AppProvider({ children }) {
       isSetupComplete: true 
     }));
     logEvent("SETUP_COMPLETE", `Name: ${realName}, Pet: ${petName}`);
+  };
+
+  const changeTheme = (themeId) => {
+    setUser(prev => ({ ...prev, theme: themeId }));
+    logEvent("THEME_CHANGED", themeId);
   };
 
   const addTask = (task) => {
@@ -174,7 +180,7 @@ export function AppProvider({ children }) {
   };
 
   return (
-    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, changePetType, addSubject, updateAccessoryPosition, completeSetup }}>
+    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, changePetType, addSubject, updateAccessoryPosition, completeSetup, changeTheme }}>
       {children}
     </AppContext.Provider>
   );

@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { useApp } from './context/AppContext';
-import { Bell, Moon, HelpCircle, LogOut, Download, Shield, Lock, X, Check, Edit2, Shirt, ChevronLeft, Paintbrush, Crosshair } from 'lucide-react';
+import { Bell, HelpCircle, LogOut, Download, Shield, Lock, X, Check, Edit2, Shirt, ChevronLeft, Paintbrush, Moon } from 'lucide-react';
 
 export default function Profile() {
-  const { user, tasks, analytics, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition } = useApp();
+  const { user, tasks, analytics, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition, changeTheme } = useApp();
   const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Accessories');
   
   const [editingAccessory, setEditingAccessory] = useState(null); 
-  // Default to center (0,0), normal scale (100)
   const [currentPos, setCurrentPos] = useState({ x: 0, y: 0, rotate: 0, scale: 100 });
 
   const xpProgress = user.xp % 100;
@@ -31,8 +30,6 @@ export default function Profile() {
 
   const currentPetImage = petChoices.find(p => p.id === user.petType)?.src || petChoices[0]?.src;
   const currentAccessoryImage = accessoryChoices.find(a => a.id === user.equipped)?.src;
-  
-  // Default saved position is now center (0,0)
   const activePos = user.accessoryPositions?.[user.equipped] || { x: 0, y: 0, rotate: 0, scale: 100 };
 
   const premiumItems = {
@@ -71,7 +68,6 @@ export default function Profile() {
 
   const handleStartAdjusting = (accessoryId) => {
     equipCosmetic(accessoryId);
-    // If it's a new item, start at center. If it's saved, load saved.
     setCurrentPos(user.accessoryPositions?.[accessoryId] || { x: 0, y: 0, rotate: 0, scale: 100 });
     setEditingAccessory(accessoryId);
   };
@@ -82,75 +78,91 @@ export default function Profile() {
   };
 
   return (
-    <div style={{ padding: '20px', paddingBottom: '80px' }}>
+    <div style={{ padding: '0 20px 20px 20px' }}>
       
       {/* Header */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px', marginTop: '10px' }}>
         
-        <div style={{ width: '140px', height: '140px', backgroundColor: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative', border: '4px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+        <div style={{ width: '140px', height: '140px', backgroundColor: 'var(--card-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative', border: '4px solid var(--card-border)', boxShadow: 'var(--card-shadow)', overflow: 'hidden' }}>
           {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '50px' }}>🐱</span>}
           
-          {/* 
-            THE MATH FIX: 
-            Instead of top/left, we use top: 50%, left: 50%, and translate(-50%, -50%) to perfectly center it.
-            Then we add the user's pixel offsets.
-          */}
           {currentAccessoryImage && (
             <img 
               src={currentAccessoryImage} 
               alt="Accessory" 
               style={{ 
-                position: 'absolute', 
-                top: '50%', left: '50%',
-                width: '100px', height: '100px', // Base size
-                objectFit: 'contain', 
-                zIndex: 10,
-                transform: `translate(calc(-50% + ${activePos.x}px), calc(-50% + ${activePos.y}px)) rotate(${activePos.rotate}deg) scale(${activePos.scale / 100})`,
-                transformOrigin: 'center center'
+                position: 'absolute', top: '50%', left: '50%', width: '100px', height: '100px', objectFit: 'contain', zIndex: 10,
+                transform: `translate(calc(-50% + ${activePos.x}px), calc(-50% + ${activePos.y}px)) rotate(${activePos.rotate}deg) scale(${activePos.scale / 100})`, transformOrigin: 'center center'
               }} 
             />
           )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <h2 style={{ margin: 0, fontSize: '22px' }}>{user.petName || "Mochi"}</h2>
+          <h2 style={{ margin: 0, fontSize: '26px', fontWeight: '700', color: 'var(--text-main)' }}>{user.petName || "Mochi"}</h2>
           <button onClick={handleRename} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
-            <Edit2 size={16} color="#a0aec0" />
+            <Edit2 size={18} color="var(--text-muted)" />
           </button>
         </div>
-        <p style={{ margin: '4px 0 10px 0', fontSize: '14px', color: '#a0aec0' }}>Level {user.level} • {xpProgress}/100 XP</p>
+        <p style={{ margin: '4px 0 10px 0', fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>Level {user.level} • {xpProgress}/100 XP</p>
         
         <button 
           onClick={() => setIsWardrobeOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#5b8def', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '12px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(91, 141, 239, 0.3)' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'var(--primary)', color: 'var(--text-on-primary)', border: '3px solid var(--card-border)', padding: '12px 24px', borderRadius: '20px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 6px 0 var(--secondary)' }}
         >
           <Shirt size={20} /> Edit Pet
         </button>
       </div>
 
-      {/* Menu List (Same as before) */}
-      <div style={{ backgroundColor: 'white', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
-        <MenuRow icon={<Shield size={20} color="#5b8def" />} title="Account Information" subtitle="View and edit your details" />
-        <MenuRow icon={<Bell size={20} color="#f2c94c" />} title="Notifications" subtitle="Manage your notifications" />
-        <MenuRow icon={<Moon size={20} color="#7b61ff" />} title="Theme" subtitle="Light / Dark mode" />
+      {/* Menu List */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <MenuRow icon={<Shield size={20} color="var(--primary)" />} title="Account Information" subtitle="View and edit your details" />
+        <MenuRow icon={<Bell size={20} color="var(--chip-color)" />} title="Notifications" subtitle="Manage your notifications" />
+        
+        {/* Theme Selector */}
+        <div style={{ padding: '15px 20px', borderBottom: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ backgroundColor: 'var(--chip-bg)', padding: '8px', borderRadius: '10px' }}><Moon size={20} color="var(--primary)" /></div>
+            <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>Theme</h4>
+          </div>
+          <select 
+            value={user.theme || 'cute'} 
+            onChange={(e) => changeTheme(e.target.value)}
+            style={{ padding: '8px', borderRadius: '10px', border: '2px solid var(--card-border)', backgroundColor: 'var(--bg-color)', color: 'var(--text-main)', fontWeight: '600', outline: 'none', fontSize: '13px' }}
+          >
+            <option value="cute">Cute Core 🌸</option>
+            <option value="ocean">Deep Ocean 🌊</option>
+            <option value="dark">Midnight 🌙</option>
+          </select>
+                    <select 
+            value={user.theme || 'cute'} 
+            onChange={(e) => changeTheme(e.target.value)}
+            style={{ padding: '8px', borderRadius: '10px', border: '2px solid var(--card-border)', backgroundColor: 'var(--bg-color)', color: 'var(--text-main)', fontWeight: '600', outline: 'none', fontSize: '13px' }}
+          >
+            <option value="cute">Cute Core 🌸</option>
+            <option value="monochrome">Monochrome 🖤</option>
+            <option value="space">Cosmic Space 🚀</option>
+          </select>
+        </div>
+
         <MenuRow icon={<HelpCircle size={20} color="#66d9a0" />} title="Help & Support" subtitle="Get help or contact us" />
         
-        <div onClick={handleExportData} style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', borderTop: '1px solid #edf2f7', cursor: 'pointer' }}>
-          <div style={{ marginRight: '15px', backgroundColor: '#e6f0ff', padding: '8px', borderRadius: '10px' }}><Download size={20} color="#5b8def" /></div>
+        <div onClick={handleExportData} style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', cursor: 'pointer', borderTop: '1px solid var(--card-border)' }}>
+          <div style={{ marginRight: '15px', backgroundColor: 'var(--chip-bg)', padding: '8px', borderRadius: '10px' }}><Download size={20} color="var(--primary)" /></div>
           <div style={{ flex: 1 }}>
-            <h4 style={{ margin: 0, fontSize: '14px', color: '#2d3748' }}>Export Research Data</h4>
-            <p style={{ margin: 0, fontSize: '12px', color: '#a0aec0' }}>Download tasks, stats, and analytics as JSON</p>
+            <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>Export Research Data</h4>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>Download your data as JSON</p>
           </div>
         </div>
       </div>
 
-      <button style={{ width: '100%', padding: '15px', backgroundColor: '#ffe6e6', color: '#eb5757', border: 'none', borderRadius: '15px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+      <button className="logout-btn" style={{ marginTop: '10px' }}>
         <LogOut size={20} /> Log Out
       </button>
 
       {/* WARDROBE MODAL */}
       {isWardrobeOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 100, animation: 'fadeIn 0.3s ease' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 100, animation: 'fadeIn 0.3s ease' }}>
           
           <style>
             {`
@@ -159,29 +171,29 @@ export default function Profile() {
             `}
           </style>
 
-          <div style={{ backgroundColor: 'white', width: '100%', maxWidth: '480px', height: '85vh', borderTopLeftRadius: '30px', borderTopRightRadius: '30px', display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+          <div style={{ backgroundColor: 'var(--bg-color)', width: '100%', maxWidth: '480px', height: '85vh', borderTopLeftRadius: '40px', borderTopRightRadius: '40px', display: 'flex', flexDirection: 'column', overflow: 'hidden', animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)', borderTop: '4px solid var(--card-border)' }}>
             
-            <div style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #edf2f7' }}>
+            <div style={{ padding: '20px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px dashed var(--card-border)' }}>
               {editingAccessory ? (
-                <button onClick={() => setEditingAccessory(null)} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: '#5b8def', fontWeight: 'bold', padding: 0 }}>
+                <button onClick={() => setEditingAccessory(null)} style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer', color: 'var(--primary)', fontWeight: '700', padding: 0 }}>
                   <ChevronLeft size={20} /> Back
                 </button>
               ) : (
-                <h3 style={{ margin: 0, fontSize: '20px' }}>Customize {user.petName}</h3>
+                <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--text-main)', fontWeight: '700' }}>Customize {user.petName}</h3>
               )}
               
-              <button onClick={() => { setIsWardrobeOpen(false); setEditingAccessory(null); }} style={{ background: '#f4f7fb', border: 'none', borderRadius: '50%', padding: '8px', cursor: 'pointer', display: 'flex' }}>
-                <X size={20} color="#4a5568" />
+              <button onClick={() => { setIsWardrobeOpen(false); setEditingAccessory(null); }} style={{ background: 'var(--card-bg)', border: '2px solid var(--card-border)', borderRadius: '50%', padding: '8px', cursor: 'pointer', display: 'flex' }}>
+                <X size={20} color="var(--text-main)" />
               </button>
             </div>
 
             {!editingAccessory && (
-              <div style={{ display: 'flex', padding: '15px 20px', gap: '10px', backgroundColor: '#f8fafc' }}>
+              <div style={{ display: 'flex', padding: '15px 20px', gap: '10px' }}>
                 {['Accessories', 'Persona', 'Titles'].map(tab => (
                   <button 
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    style={{ flex: 1, padding: '10px', border: 'none', borderRadius: '10px', backgroundColor: activeTab === tab ? 'white' : 'transparent', color: activeTab === tab ? '#5b8def' : '#a0aec0', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', boxShadow: activeTab === tab ? '0 2px 5px rgba(0,0,0,0.05)' : 'none', transition: 'all 0.2s ease' }}
+                    style={{ flex: 1, padding: '12px', border: '2px solid', borderColor: activeTab === tab ? 'var(--primary)' : 'transparent', borderRadius: '15px', backgroundColor: activeTab === tab ? 'var(--secondary)' : 'var(--card-bg)', color: activeTab === tab ? 'var(--text-on-primary)' : 'var(--text-muted)', fontWeight: '700', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s ease' }}
                   >
                     {tab}
                   </button>
@@ -196,7 +208,7 @@ export default function Profile() {
                   {activeTab === 'Accessories' && (
                     <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                       {accessoryChoices.length === 0 ? (
-                        <p style={{ color: '#a0aec0', fontSize: '14px', width: '100%', textAlign: 'center' }}>No accessories found.</p>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '14px', width: '100%', textAlign: 'center', fontWeight: '600' }}>No accessories found.</p>
                       ) : (
                         accessoryChoices.map(item => (
                           <WardrobeItem 
@@ -211,14 +223,15 @@ export default function Profile() {
                         ))
                       )}
                       
+                      {/* Locked Custom Art */}
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '80px', height: '80px', backgroundColor: '#f4f7fb', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5, position: 'relative' }}>
-                          <Paintbrush size={30} color="#4a5568" />
-                          <Lock size={20} color="#4a5568" style={{ position: 'absolute' }} />
+                        <div style={{ width: '80px', height: '80px', backgroundColor: 'var(--card-bg)', borderRadius: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5, position: 'relative', border: '2px solid var(--card-border)' }}>
+                          <Paintbrush size={30} color="var(--text-muted)" />
+                          <Lock size={20} color="var(--text-muted)" style={{ position: 'absolute' }} />
                         </div>
                         <div style={{ textAlign: 'center' }}>
-                          <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: '#2d3748' }}>Custom Art</p>
-                          <p style={{ margin: 0, fontSize: '10px', color: '#a0aec0' }}>Reach Lvl 10</p>
+                          <p style={{ margin: 0, fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>Custom Art</p>
+                          <p style={{ margin: 0, fontSize: '10px', color: 'var(--text-muted)', fontWeight: '600' }}>Reach Lvl 10</p>
                         </div>
                       </div>
                     </div>
@@ -252,83 +265,58 @@ export default function Profile() {
               {editingAccessory && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   
-                  {/* CANVAS PREVIEW */}
-                  <div style={{ 
-                    width: '220px', height: '220px', 
-                    backgroundColor: '#f8fafc', borderRadius: '20px', 
-                    border: '2px dashed #cbd5e0', 
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                    position: 'relative', overflow: 'hidden', marginBottom: '20px' 
-                  }}>
+                  <div style={{ width: '220px', height: '220px', backgroundColor: 'var(--card-bg)', borderRadius: '30px', border: '3px dashed var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginBottom: '20px' }}>
+                    {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '60px' }}>🐱</span>}
                     
-                    {/* Center Crosshair Guide */}
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', width: '100%', height: '1px', backgroundColor: '#cbd5e0', transform: 'translateY(-50%)', zIndex: 0 }}></div>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', height: '100%', width: '1px', backgroundColor: '#cbd5e0', transform: 'translateX(-50%)', zIndex: 0 }}></div>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#cbd5e0', zIndex: 0 }}>
-                      <Crosshair size={24} />
-                    </div>
-
-                    {/* Pet Image */}
-                    {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }} /> : <span style={{ fontSize: '60px', zIndex: 1 }}>🐱</span>}
-                    
-                    {/* Accessory Image */}
                     {currentAccessoryImage && (
                       <img 
                         src={currentAccessoryImage} 
                         alt="Accessory" 
                         style={{ 
-                          position: 'absolute', 
-                          top: '50%', left: '50%',
-                          width: '120px', height: '120px', // Increased base size
-                          objectFit: 'contain', 
-                          zIndex: 10,
-                          transform: `translate(calc(-50% + ${currentPos.x}px), calc(-50% + ${currentPos.y}px)) rotate(${currentPos.rotate}deg) scale(${currentPos.scale / 100})`,
-                          transformOrigin: 'center center'
+                          position: 'absolute', top: '50%', left: '50%', width: '120px', height: '120px', objectFit: 'contain', zIndex: 10,
+                          transform: `translate(calc(-50% + ${currentPos.x}px), calc(-50% + ${currentPos.y}px)) rotate(${currentPos.rotate}deg) scale(${currentPos.scale / 100})`, transformOrigin: 'center center'
                         }} 
                       />
                     )}
                   </div>
 
-                  <h4 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#2d3748' }}>Adjust Position</h4>
+                  <h4 style={{ margin: '0 0 15px 0', fontSize: '18px', color: 'var(--text-main)', fontWeight: '700' }}>Adjust Position</h4>
 
                   <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px', padding: '0 10px' }}>
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                        <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#4a5568' }}>Move Left / Right</label>
-                        <span style={{ fontSize: '12px', color: '#a0aec0' }}>{currentPos.x}px</span>
+                        <label style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>Move Left / Right</label>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{currentPos.x}px</span>
                       </div>
-                      {/* Increased range to -150 to 150 */}
-                      <input type="range" min="-150" max="150" value={currentPos.x} onChange={(e) => setCurrentPos({...currentPos, x: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
+                      <input type="range" min="-150" max="150" value={currentPos.x} onChange={(e) => setCurrentPos({...currentPos, x: Number(e.target.value)})} style={{ width: '100%', accentColor: 'var(--primary)' }} />
                     </div>
 
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                        <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#4a5568' }}>Move Up / Down</label>
-                        <span style={{ fontSize: '12px', color: '#a0aec0' }}>{currentPos.y}px</span>
+                        <label style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>Move Up / Down</label>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{currentPos.y}px</span>
                       </div>
-                      {/* Increased range to -150 to 150 */}
-                      <input type="range" min="-150" max="150" value={currentPos.y} onChange={(e) => setCurrentPos({...currentPos, y: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
+                      <input type="range" min="-150" max="150" value={currentPos.y} onChange={(e) => setCurrentPos({...currentPos, y: Number(e.target.value)})} style={{ width: '100%', accentColor: 'var(--primary)' }} />
                     </div>
 
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                        <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#4a5568' }}>Tilt</label>
-                        <span style={{ fontSize: '12px', color: '#a0aec0' }}>{currentPos.rotate}°</span>
+                        <label style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>Tilt</label>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{currentPos.rotate}°</span>
                       </div>
-                      <input type="range" min="-180" max="180" value={currentPos.rotate} onChange={(e) => setCurrentPos({...currentPos, rotate: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
+                      <input type="range" min="-180" max="180" value={currentPos.rotate} onChange={(e) => setCurrentPos({...currentPos, rotate: Number(e.target.value)})} style={{ width: '100%', accentColor: 'var(--primary)' }} />
                     </div>
 
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                        <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#4a5568' }}>Scale (Size)</label>
-                        <span style={{ fontSize: '12px', color: '#a0aec0' }}>{currentPos.scale}%</span>
+                        <label style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-main)' }}>Scale (Size)</label>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600' }}>{currentPos.scale}%</span>
                       </div>
-                      {/* Increased range to 50 to 300 */}
-                      <input type="range" min="50" max="300" value={currentPos.scale} onChange={(e) => setCurrentPos({...currentPos, scale: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
+                      <input type="range" min="50" max="300" value={currentPos.scale} onChange={(e) => setCurrentPos({...currentPos, scale: Number(e.target.value)})} style={{ width: '100%', accentColor: 'var(--primary)' }} />
                     </div>
                   </div>
 
-                  <button onClick={handleSaveAdjustment} style={{ width: '100%', padding: '15px', backgroundColor: '#5b8def', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer', marginTop: '20px' }}>
+                  <button onClick={handleSaveAdjustment} className="btn-primary" style={{ marginTop: '25px', width: '100%' }}>
                     Save & Equip
                   </button>
                 </div>
@@ -347,31 +335,32 @@ function WardrobeItem({ icon, image, name, isUnlocked, isEquipped, onClick, req 
       <div 
         onClick={() => isUnlocked && onClick()}
         style={{ 
-          width: '80px', height: '80px', backgroundColor: '#f4f7fb', borderRadius: '20px', 
+          width: '80px', height: '80px', backgroundColor: 'var(--card-bg)', borderRadius: '25px', 
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', 
           cursor: isUnlocked ? 'pointer' : 'not-allowed', 
-          border: isEquipped ? '3px solid #5b8def' : '3px solid transparent', 
-          opacity: isUnlocked ? 1 : 0.4, position: 'relative', transition: 'all 0.2s ease',
+          border: isEquipped ? '3px solid var(--primary)' : '3px solid var(--card-border)', 
+          boxShadow: isEquipped ? '0 4px 0 var(--secondary)' : 'none',
+          opacity: isUnlocked ? 1 : 0.5, position: 'relative', transition: 'all 0.2s ease',
           padding: '10px'
         }}
       >
         {image ? <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : icon}
         
-        {!isUnlocked && <Lock size={24} color="#4a5568" style={{ position: 'absolute' }} />}
+        {!isUnlocked && <Lock size={24} color="var(--text-muted)" style={{ position: 'absolute' }} />}
         
         {isEquipped && (
           <div style={{ 
             position: 'absolute', top: '-8px', right: '-8px', 
-            backgroundColor: '#5b8def', borderRadius: '50%', padding: '4px', 
+            backgroundColor: 'var(--primary)', borderRadius: '50%', padding: '4px', 
             zIndex: 10, border: '2px solid white', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' 
           }}>
-            <Check size={14} color="white" strokeWidth={3} />
+            <Check size={14} color="var(--text-on-primary)" strokeWidth={3} />
           </div>
         )}
       </div>
       <div style={{ textAlign: 'center' }}>
-        <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: '#2d3748' }}>{name}</p>
-        {req && !isUnlocked && <p style={{ margin: 0, fontSize: '10px', color: '#a0aec0' }}>{req}</p>}
+        <p style={{ margin: 0, fontSize: '13px', fontWeight: '700', color: 'var(--text-main)' }}>{name}</p>
+        {req && !isUnlocked && <p style={{ margin: 0, fontSize: '10px', color: 'var(--text-muted)', fontWeight: '600' }}>{req}</p>}
       </div>
     </div>
   );
@@ -379,20 +368,20 @@ function WardrobeItem({ icon, image, name, isUnlocked, isEquipped, onClick, req 
 
 function TitleItem({ title, isEquipped, onClick, isLocked }) {
   return (
-    <div onClick={() => !isLocked && onClick()} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', backgroundColor: '#f8fafc', borderRadius: '12px', border: isEquipped ? '2px solid #5b8def' : '2px solid transparent', cursor: isLocked ? 'not-allowed' : 'pointer', opacity: isLocked ? 0.5 : 1, transition: 'all 0.2s' }}>
-      <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#2d3748' }}>🏅 {title}</span>
-      {isLocked ? <Lock size={16} color="#a0aec0" /> : isEquipped ? <Check size={18} color="#5b8def" /> : null}
+    <div onClick={() => !isLocked && onClick()} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', backgroundColor: 'var(--card-bg)', borderRadius: '20px', border: isEquipped ? '2px solid var(--primary)' : '2px solid var(--card-border)', cursor: isLocked ? 'not-allowed' : 'pointer', opacity: isLocked ? 0.5 : 1, transition: 'all 0.2s', boxShadow: isEquipped ? '0 4px 0 var(--secondary)' : 'none' }}>
+      <span style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)' }}>🏅 {title}</span>
+      {isLocked ? <Lock size={16} color="var(--text-muted)" /> : isEquipped ? <Check size={18} color="var(--primary)" /> : null}
     </div>
   );
 }
 
 function MenuRow({ icon, title, subtitle }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid #edf2f7', cursor: 'pointer' }}>
-      <div style={{ marginRight: '15px', backgroundColor: '#f4f7fb', padding: '8px', borderRadius: '10px' }}>{icon}</div>
+    <div style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', borderBottom: '1px solid var(--card-border)', cursor: 'pointer' }}>
+      <div style={{ marginRight: '15px', backgroundColor: 'var(--chip-bg)', padding: '8px', borderRadius: '10px' }}>{icon}</div>
       <div style={{ flex: 1 }}>
-        <h4 style={{ margin: 0, fontSize: '14px', color: '#2d3748' }}>{title}</h4>
-        <p style={{ margin: 0, fontSize: '12px', color: '#a0aec0' }}>{subtitle}</p>
+        <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>{title}</h4>
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>{subtitle}</p>
       </div>
     </div>
   );
