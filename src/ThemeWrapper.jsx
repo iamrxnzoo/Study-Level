@@ -29,7 +29,7 @@ export default function ThemeWrapper({ children }) {
     root.style.setProperty('--chip-bg', activeTheme.chipBg);
     root.style.setProperty('--chip-color', activeTheme.chipColor);
 
-    // Force the body background to update for the space theme
+    // Handle background image for space theme
     if (activeTheme.id === 'space') {
       document.body.style.backgroundImage = activeTheme.bgPattern;
       document.body.style.backgroundSize = 'cover';
@@ -37,6 +37,7 @@ export default function ThemeWrapper({ children }) {
     } else {
       document.body.style.backgroundImage = activeTheme.bgPattern;
       document.body.style.backgroundSize = activeTheme.bgSize;
+      document.body.style.backgroundAttachment = 'initial';
     }
     
   }, [activeTheme]);

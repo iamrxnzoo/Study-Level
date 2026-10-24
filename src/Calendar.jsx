@@ -44,30 +44,28 @@ export default function Calendar() {
     return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   };
 
-  // --- NEW: Get Tasks Due Today ---
   const todayString = new Date().toDateString();
   const tasksDueToday = tasks.filter(t => !t.isCompleted && new Date(t.deadline).toDateString() === todayString);
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ padding: '0 20px 20px 20px' }}>
       
       <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ margin: 0, fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ color: '#5b8def' }}>📅</span> Calendar
+        <h2 style={{ margin: 0, fontSize: '24px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)', fontWeight: '700' }}>
+          <span style={{ color: 'var(--primary)' }}>📅</span> Calendar
         </h2>
-        <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#a0aec0' }}>Overdue and upcoming deadlines</p>
+        <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>Overdue and upcoming deadlines</p>
       </div>
 
-      {/* Calendar Card */}
-      <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
+      <div className="card" style={{ marginBottom: '20px' }}>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <button onClick={prevMonth} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronLeft size={20} color="#4a5568" /></button>
-          <h3 style={{ margin: 0, fontSize: '16px' }}>{monthNames[month]} {year}</h3>
-          <button onClick={nextMonth} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><ChevronRight size={20} color="#4a5568" /></button>
+          <button onClick={prevMonth} style={{ background: 'var(--card-bg)', border: '2px solid var(--card-border)', borderRadius: '10px', padding: '5px', cursor: 'pointer', display: 'flex' }}><ChevronLeft size={20} color="var(--text-main)" /></button>
+          <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text-main)', fontWeight: '700' }}>{monthNames[month]} {year}</h3>
+          <button onClick={nextMonth} style={{ background: 'var(--card-bg)', border: '2px solid var(--card-border)', borderRadius: '10px', padding: '5px', cursor: 'pointer', display: 'flex' }}><ChevronRight size={20} color="var(--text-main)" /></button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontSize: '12px', fontWeight: 'bold', color: '#a0aec0', marginBottom: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '10px' }}>
           {dayNames.map(d => <div key={d}>{d}</div>)}
         </div>
 
@@ -80,10 +78,10 @@ export default function Calendar() {
                 key={day} 
                 onClick={() => setSelectedDate(day)}
                 style={{ 
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', margin: '0 auto', borderRadius: '50%',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', margin: '0 auto', borderRadius: '50%',
                   backgroundColor: color !== 'transparent' ? `${color}30` : 'transparent', 
-                  color: color !== 'transparent' ? color : '#2d3748',
-                  fontWeight: color !== 'transparent' ? 'bold' : 'normal', transition: 'background-color 0.2s'
+                  color: color !== 'transparent' ? color : 'var(--text-main)',
+                  fontWeight: color !== 'transparent' ? '700' : '600', transition: 'background-color 0.2s'
                 }}
               >
                 {day}
@@ -92,31 +90,30 @@ export default function Calendar() {
           })}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px', fontSize: '12px', color: '#a0aec0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#66d9a0' }}></div> 1-2 tasks</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f2c94c' }}></div> 3-4 tasks</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#eb5757' }}></div> 5+ tasks</div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px', fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#66d9a0' }}></div> 1-2 tasks</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f2c94c' }}></div> 3-4 tasks</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}><div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#eb5757' }}></div> 5+ tasks</div>
         </div>
       </div>
 
-      {/* NEW: Tasks Due Today Section */}
-      <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
-        <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#2d3748' }}>Tasks Due Today</h3>
+      <div className="card" style={{ marginBottom: '20px' }}>
+        <h3 style={{ margin: '0 0 15px 0', fontSize: '18px', color: 'var(--text-main)', fontWeight: '700' }}>Tasks Due Today</h3>
         
         {tasksDueToday.length === 0 ? (
-          <p style={{ margin: 0, fontSize: '14px', color: '#a0aec0', textAlign: 'center' }}>No tasks due today. You're all caught up! 🎉</p>
+          <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)', textAlign: 'center', fontWeight: '600' }}>No tasks due today. You're all caught up! 🎉</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {tasksDueToday.map(task => (
-              <div key={task.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '10px' }}>
+              <div key={task.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--chip-bg)', padding: '12px', borderRadius: '15px' }}>
                 <div>
-                  <h4 style={{ margin: 0, fontSize: '14px', color: '#2d3748' }}>{task.title}</h4>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#a0aec0' }}>{task.subject} • {task.category}</p>
+                  <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--text-main)', fontWeight: '700' }}>{task.title}</h4>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>{task.subject} • {task.category}</p>
                 </div>
                 <span style={{ 
                   backgroundColor: task.difficulty === 'High' ? '#ffe6e6' : task.difficulty === 'Medium' ? '#fff9e6' : '#e6fcef',
                   color: task.difficulty === 'High' ? '#eb5757' : task.difficulty === 'Medium' ? '#f2c94c' : '#66d9a0',
-                  padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold'
+                  padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '700'
                 }}>
                   {task.difficulty}
                 </span>
@@ -126,32 +123,31 @@ export default function Calendar() {
         )}
       </div>
 
-      {/* Modal Pop-up */}
       {selectedDate && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }}>
-          <div style={{ backgroundColor: 'white', width: '100%', maxWidth: '400px', borderRadius: '20px', padding: '20px' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', width: '100%', maxWidth: '400px', borderRadius: '30px', padding: '24px', border: '2px solid var(--card-border)' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px' }}>Tasks on {formatSelectedDate()}</h3>
-              <button onClick={() => setSelectedDate(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
-                <X size={20} color="#a0aec0" />
+              <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text-main)', fontWeight: '700' }}>Tasks on {formatSelectedDate()}</h3>
+              <button onClick={() => setSelectedDate(null)} style={{ background: 'var(--chip-bg)', border: 'none', borderRadius: '50%', padding: '5px', cursor: 'pointer', display: 'flex' }}>
+                <X size={20} color="var(--text-main)" />
               </button>
             </div>
 
             {getTasksForDay(selectedDate).length === 0 ? (
-              <p style={{ color: '#a0aec0', textAlign: 'center', margin: '20px 0' }}>No tasks scheduled for this day. 🎉</p>
+              <p style={{ color: 'var(--text-muted)', textAlign: 'center', margin: '20px 0', fontWeight: '600' }}>No tasks scheduled for this day. 🎉</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {getTasksForDay(selectedDate).map(task => (
-                  <div key={task.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', padding: '12px', borderRadius: '10px' }}>
+                  <div key={task.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--chip-bg)', padding: '12px', borderRadius: '15px' }}>
                     <div>
-                      <h4 style={{ margin: 0, fontSize: '14px', color: '#2d3748' }}>{task.title}</h4>
-                      <p style={{ margin: 0, fontSize: '12px', color: '#a0aec0' }}>{task.subject} • {task.category}</p>
+                      <h4 style={{ margin: 0, fontSize: '14px', color: 'var(--text-main)', fontWeight: '700' }}>{task.title}</h4>
+                      <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>{task.subject} • {task.category}</p>
                     </div>
                     <span style={{ 
                       backgroundColor: task.difficulty === 'High' ? '#ffe6e6' : task.difficulty === 'Medium' ? '#fff9e6' : '#e6fcef',
                       color: task.difficulty === 'High' ? '#eb5757' : task.difficulty === 'Medium' ? '#f2c94c' : '#66d9a0',
-                      padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 'bold'
+                      padding: '4px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '700'
                     }}>
                       {task.difficulty}
                     </span>

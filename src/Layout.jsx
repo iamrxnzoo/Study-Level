@@ -8,7 +8,6 @@ export default function Layout() {
   const location = useLocation();
   const { user } = useApp();
 
-  // Load dynamic pet image
   const petFiles = import.meta.glob('/public/images/pets/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
   const petChoices = Object.keys(petFiles).map(path => {
     const fileName = path.split('/').pop();
@@ -31,7 +30,7 @@ export default function Layout() {
     <div className="app-container">
       <header className="top-header">
         <button onClick={() => setIsSidebarOpen(true)} className="menu-btn">
-          <Menu size={28} color="#2d3748" />
+          <Menu size={28} />
         </button>
         <div className="logo-text">
           <span style={{ fontSize: '24px' }}>📚</span> StudyLevel
@@ -45,7 +44,7 @@ export default function Layout() {
         
         <div className="sidebar-header">
           <div className="sidebar-user">
-            <div className="avatar-placeholder" style={{ overflow: 'hidden', padding: 0 }}>
+            <div className="avatar-placeholder">
                {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : user.petName?.charAt(0) || "M"}
             </div>
             <div>
@@ -54,7 +53,7 @@ export default function Layout() {
             </div>
           </div>
           <button onClick={closeSidebar} className="close-btn">
-            <X size={24} color="#a0aec0" />
+            <X size={24} />
           </button>
         </div>
 
@@ -71,11 +70,10 @@ export default function Layout() {
         </div>
 
         <div className="sidebar-footer" style={{ textAlign: 'center', padding: '20px' }}>
-          {/* Dynamic Pet Image at the bottom */}
-          <div style={{ width: '100px', height: '100px', margin: '0 auto 10px auto', backgroundColor: '#f4f7fb', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          <div style={{ width: '100px', height: '100px', margin: '0 auto 10px auto', backgroundColor: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '3px solid var(--card-border)' }}>
             {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '50px' }}>🐱</span>}
           </div>
-          <p style={{ fontSize: '13px', color: '#a0aec0', fontWeight: '800', fontStyle: 'italic', marginBottom: '20px' }}>"Study today, level up tomorrow!"</p>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', fontStyle: 'italic', marginBottom: '20px' }}>"Study today, level up tomorrow!"</p>
           
           <button className="logout-btn" style={{ justifyContent: 'center' }}>
             <LogOut size={20} />

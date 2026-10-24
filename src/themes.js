@@ -42,19 +42,18 @@ export const themes = {
     name: 'Cosmic Space 🚀',
     font: "'Nunito', sans-serif",
     bgColor: '#0B0F19',
-    // This points to the image you put in public/images/space-bg.jpg
     bgPattern: 'url("/images/themes/space-bg.jpg")', 
     bgSize: 'cover',
     bgPosition: 'center',
     primaryColor: '#38BDF8',
     secondaryColor: '#0284C7',
-    cardBg: 'rgba(15, 23, 42, 0.85)', // Semi-transparent dark blue
-    cardBorder: 'rgba(56, 189, 248, 0.3)',
-    cardShadow: '0 8px 0 rgba(0, 0, 0, 0.4), 0 15px 30px rgba(56, 189, 248, 0.15)',
+    cardBg: '#111827', 
+    cardBorder: '#1F2937',
+    cardShadow: '0 8px 30px rgba(0, 0, 0, 0.6)',
     textColor: '#F8FAFC',
-    textMuted: '#94A3B8',
+    textMuted: '#9CA3AF',
     textOnPrimary: '#0F172A',
-    chipBg: 'rgba(56, 189, 248, 0.15)',
+    chipBg: '#1F2937',
     chipColor: '#38BDF8',
   }
 };
