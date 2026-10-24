@@ -7,6 +7,8 @@ import Calendar from './Calendar';
 import Profile from './Profile';
 import Rewards from './Rewards';
 
+
+
 export default function App() {
   return (
     <AppProvider>
@@ -23,4 +25,4 @@ export default function App() {
       </BrowserRouter>
     </AppProvider>
   );
-}
+  }

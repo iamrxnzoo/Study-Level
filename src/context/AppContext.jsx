@@ -22,7 +22,8 @@ export function AppProvider({ children }) {
       unlockedTitles: ["Beginner"],
       equippedTitle: "Beginner",
       petName: "Mochi",
-      subjects: ["Math", "Science", "English", "Filipino"] // Default subjects
+      petType: "cat", // NEW: Default pet is a cat
+      subjects: ["Math", "Science", "English", "Filipino"] 
     };
   });
 
@@ -39,6 +40,7 @@ export function AppProvider({ children }) {
     setAnalytics(prev => [...prev, { timestamp: new Date().toISOString(), action, details }]);
   };
 
+  // STREAK CHECKER
   useEffect(() => {
     if (!user.lastActiveDate) return; 
     const today = new Date(); today.setHours(0,0,0,0);
@@ -132,6 +134,12 @@ export function AppProvider({ children }) {
     logEvent("MOCHI_RENAMED", newName);
   };
 
+  // NEW: Change Pet Type (Cat, Fox, etc.)
+  const changePetType = (type) => {
+    setUser(prev => ({ ...prev, petType: type }));
+    logEvent("PET_TYPE_CHANGED", type);
+  };
+
   const addSubject = (subject) => {
     if (!subject.trim()) return;
     setUser(prev => {
@@ -141,13 +149,8 @@ export function AppProvider({ children }) {
     logEvent("SUBJECT_ADDED", subject);
   };
 
-  const removeSubject = (subject) => {
-    setUser(prev => ({ ...prev, subjects: prev.subjects.filter(s => s !== subject) }));
-    logEvent("SUBJECT_REMOVED", subject);
-  };
-
   return (
-    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, addSubject, removeSubject }}>
+    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, addSubject, changePetType }}>
       {children}
     </AppContext.Provider>
   );
