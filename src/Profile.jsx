@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from './context/AppContext';
-import { Bell, Moon, HelpCircle, LogOut, Download, Shield, Lock, X, Check, Edit2, Shirt, ChevronLeft, Paintbrush } from 'lucide-react';
+import { Bell, Moon, HelpCircle, LogOut, Download, Shield, Lock, X, Check, Edit2, Shirt, ChevronLeft, Paintbrush, Crosshair } from 'lucide-react';
 
 export default function Profile() {
   const { user, tasks, analytics, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition } = useApp();
@@ -8,7 +8,8 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('Accessories');
   
   const [editingAccessory, setEditingAccessory] = useState(null); 
-  const [currentPos, setCurrentPos] = useState({ x: 10, y: 10, rotate: 0, scale: 100 });
+  // Default to center (0,0), normal scale (100)
+  const [currentPos, setCurrentPos] = useState({ x: 0, y: 0, rotate: 0, scale: 100 });
 
   const xpProgress = user.xp % 100;
 
@@ -30,22 +31,18 @@ export default function Profile() {
 
   const currentPetImage = petChoices.find(p => p.id === user.petType)?.src || petChoices[0]?.src;
   const currentAccessoryImage = accessoryChoices.find(a => a.id === user.equipped)?.src;
-  const activePos = user.accessoryPositions?.[user.equipped] || { x: 10, y: 10, rotate: 0, scale: 100 };
+  
+  // Default saved position is now center (0,0)
+  const activePos = user.accessoryPositions?.[user.equipped] || { x: 0, y: 0, rotate: 0, scale: 100 };
 
-  // --- THE UNLOCK LOGIC ---
-  // Hardcoded premium items that require levels
   const premiumItems = {
     wizard_hat: { reqLevel: 2, text: "Lvl 2" },
     glasses: { reqLevel: 3, text: "Lvl 3" },
-    golden_aura: { reqLevel: 5, text: "Lvl 5" } // Future proofing
+    golden_aura: { reqLevel: 5, text: "Lvl 5" }
   };
 
   const isUnlocked = (itemId) => {
-    // 1. Check if it's a premium item
-    if (premiumItems[itemId]) {
-      return user.level >= premiumItems[itemId].reqLevel;
-    }
-    // 2. If it's NOT in the premium list, it's a freebie. Always unlock it.
+    if (premiumItems[itemId]) return user.level >= premiumItems[itemId].reqLevel;
     return true; 
   };
 
@@ -74,7 +71,8 @@ export default function Profile() {
 
   const handleStartAdjusting = (accessoryId) => {
     equipCosmetic(accessoryId);
-    setCurrentPos(user.accessoryPositions?.[accessoryId] || { x: 10, y: 10, rotate: 0, scale: 100 });
+    // If it's a new item, start at center. If it's saved, load saved.
+    setCurrentPos(user.accessoryPositions?.[accessoryId] || { x: 0, y: 0, rotate: 0, scale: 100 });
     setEditingAccessory(accessoryId);
   };
 
@@ -92,13 +90,23 @@ export default function Profile() {
         <div style={{ width: '140px', height: '140px', backgroundColor: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative', border: '4px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
           {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '50px' }}>🐱</span>}
           
+          {/* 
+            THE MATH FIX: 
+            Instead of top/left, we use top: 50%, left: 50%, and translate(-50%, -50%) to perfectly center it.
+            Then we add the user's pixel offsets.
+          */}
           {currentAccessoryImage && (
             <img 
               src={currentAccessoryImage} 
               alt="Accessory" 
               style={{ 
-                position: 'absolute', top: `${activePos.y}px`, left: `${activePos.x}px`, width: '60px', height: '60px', objectFit: 'contain', zIndex: 10,
-                transform: `rotate(${activePos.rotate}deg) scale(${activePos.scale / 100})`, transformOrigin: 'center center'
+                position: 'absolute', 
+                top: '50%', left: '50%',
+                width: '100px', height: '100px', // Base size
+                objectFit: 'contain', 
+                zIndex: 10,
+                transform: `translate(calc(-50% + ${activePos.x}px), calc(-50% + ${activePos.y}px)) rotate(${activePos.rotate}deg) scale(${activePos.scale / 100})`,
+                transformOrigin: 'center center'
               }} 
             />
           )}
@@ -120,7 +128,7 @@ export default function Profile() {
         </button>
       </div>
 
-      {/* Menu List */}
+      {/* Menu List (Same as before) */}
       <div style={{ backgroundColor: 'white', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
         <MenuRow icon={<Shield size={20} color="#5b8def" />} title="Account Information" subtitle="View and edit your details" />
         <MenuRow icon={<Bell size={20} color="#f2c94c" />} title="Notifications" subtitle="Manage your notifications" />
@@ -188,7 +196,7 @@ export default function Profile() {
                   {activeTab === 'Accessories' && (
                     <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                       {accessoryChoices.length === 0 ? (
-                        <p style={{ color: '#a0aec0', fontSize: '14px', width: '100%', textAlign: 'center' }}>No accessories found. Add PNGs to public/images/accessories.</p>
+                        <p style={{ color: '#a0aec0', fontSize: '14px', width: '100%', textAlign: 'center' }}>No accessories found.</p>
                       ) : (
                         accessoryChoices.map(item => (
                           <WardrobeItem 
@@ -244,16 +252,38 @@ export default function Profile() {
               {editingAccessory && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   
-                  <div style={{ width: '200px', height: '200px', backgroundColor: '#f8fafc', borderRadius: '20px', border: '2px dashed #cbd5e0', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden', marginBottom: '20px' }}>
-                    {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '60px' }}>🐱</span>}
+                  {/* CANVAS PREVIEW */}
+                  <div style={{ 
+                    width: '220px', height: '220px', 
+                    backgroundColor: '#f8fafc', borderRadius: '20px', 
+                    border: '2px dashed #cbd5e0', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                    position: 'relative', overflow: 'hidden', marginBottom: '20px' 
+                  }}>
                     
+                    {/* Center Crosshair Guide */}
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', width: '100%', height: '1px', backgroundColor: '#cbd5e0', transform: 'translateY(-50%)', zIndex: 0 }}></div>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', height: '100%', width: '1px', backgroundColor: '#cbd5e0', transform: 'translateX(-50%)', zIndex: 0 }}></div>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: '#cbd5e0', zIndex: 0 }}>
+                      <Crosshair size={24} />
+                    </div>
+
+                    {/* Pet Image */}
+                    {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover', zIndex: 1 }} /> : <span style={{ fontSize: '60px', zIndex: 1 }}>🐱</span>}
+                    
+                    {/* Accessory Image */}
                     {currentAccessoryImage && (
                       <img 
                         src={currentAccessoryImage} 
                         alt="Accessory" 
                         style={{ 
-                          position: 'absolute', top: `${currentPos.y}px`, left: `${currentPos.x}px`, width: '80px', height: '80px', objectFit: 'contain', zIndex: 10,
-                          transform: `rotate(${currentPos.rotate}deg) scale(${currentPos.scale / 100})`, transformOrigin: 'center center'
+                          position: 'absolute', 
+                          top: '50%', left: '50%',
+                          width: '120px', height: '120px', // Increased base size
+                          objectFit: 'contain', 
+                          zIndex: 10,
+                          transform: `translate(calc(-50% + ${currentPos.x}px), calc(-50% + ${currentPos.y}px)) rotate(${currentPos.rotate}deg) scale(${currentPos.scale / 100})`,
+                          transformOrigin: 'center center'
                         }} 
                       />
                     )}
@@ -267,7 +297,8 @@ export default function Profile() {
                         <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#4a5568' }}>Move Left / Right</label>
                         <span style={{ fontSize: '12px', color: '#a0aec0' }}>{currentPos.x}px</span>
                       </div>
-                      <input type="range" min="-80" max="80" value={currentPos.x} onChange={(e) => setCurrentPos({...currentPos, x: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
+                      {/* Increased range to -150 to 150 */}
+                      <input type="range" min="-150" max="150" value={currentPos.x} onChange={(e) => setCurrentPos({...currentPos, x: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
                     </div>
 
                     <div>
@@ -275,7 +306,8 @@ export default function Profile() {
                         <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#4a5568' }}>Move Up / Down</label>
                         <span style={{ fontSize: '12px', color: '#a0aec0' }}>{currentPos.y}px</span>
                       </div>
-                      <input type="range" min="-80" max="80" value={currentPos.y} onChange={(e) => setCurrentPos({...currentPos, y: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
+                      {/* Increased range to -150 to 150 */}
+                      <input type="range" min="-150" max="150" value={currentPos.y} onChange={(e) => setCurrentPos({...currentPos, y: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
                     </div>
 
                     <div>
@@ -283,7 +315,7 @@ export default function Profile() {
                         <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#4a5568' }}>Tilt</label>
                         <span style={{ fontSize: '12px', color: '#a0aec0' }}>{currentPos.rotate}°</span>
                       </div>
-                      <input type="range" min="-45" max="45" value={currentPos.rotate} onChange={(e) => setCurrentPos({...currentPos, rotate: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
+                      <input type="range" min="-180" max="180" value={currentPos.rotate} onChange={(e) => setCurrentPos({...currentPos, rotate: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
                     </div>
 
                     <div>
@@ -291,7 +323,8 @@ export default function Profile() {
                         <label style={{ fontSize: '13px', fontWeight: 'bold', color: '#4a5568' }}>Scale (Size)</label>
                         <span style={{ fontSize: '12px', color: '#a0aec0' }}>{currentPos.scale}%</span>
                       </div>
-                      <input type="range" min="50" max="150" value={currentPos.scale} onChange={(e) => setCurrentPos({...currentPos, scale: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
+                      {/* Increased range to 50 to 300 */}
+                      <input type="range" min="50" max="300" value={currentPos.scale} onChange={(e) => setCurrentPos({...currentPos, scale: Number(e.target.value)})} style={{ width: '100%', accentColor: '#5b8def' }} />
                     </div>
                   </div>
 
