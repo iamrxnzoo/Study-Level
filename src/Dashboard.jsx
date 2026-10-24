@@ -1,18 +1,23 @@
 import { useApp } from './context/AppContext';
-import { Flame, CheckCircle, Clock, ListTodo, AlertCircle } from 'lucide-react';
+import { Flame, CheckCircle, Clock, ListTodo } from 'lucide-react';
 
 export default function Dashboard() {
   const { user, tasks } = useApp();
 
+  // Load dynamic pet image
+  const petFiles = import.meta.glob('/public/images/pets/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
+  const petChoices = Object.keys(petFiles).map(path => {
+    const fileName = path.split('/').pop();
+    const id = fileName.split('.')[0];
+    return { id, src: `/images/pets/${fileName}` };
+  });
+  const currentPetImage = petChoices.find(p => p.id === user.petType)?.src || petChoices[0]?.src;
+
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.isCompleted).length;
-  
   const todayString = new Date().toDateString();
   const dueTodayCount = tasks.filter(t => !t.isCompleted && new Date(t.deadline).toDateString() === todayString).length;
-
-  const todayMidnight = new Date().setHours(0,0,0,0);
-  const missedCount = tasks.filter(t => !t.isCompleted && new Date(t.deadline).getTime() < todayMidnight).length;
-
+  
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
   const completedThisWeek = tasks.filter(t => t.isCompleted && new Date(t.completedAt || Date.now()) >= oneWeekAgo).length;
@@ -21,95 +26,101 @@ export default function Dashboard() {
 
   const xpProgress = user.xp % 100; 
 
-  let mochiText = "Hi! I'm Mochi. Let's make today productive!";
-  if (user.streak > 0 && completedThisWeek > 0) mochiText = "Great progress! You're one step closer to your goals!";
-  if (dueTodayCount > 0) mochiText = `You have ${dueTodayCount} task(s) due today. You got this!`;
-  if (missedCount > 0) mochiText = `Uh oh, you have ${missedCount} missed task(s). Let's catch up!`;
-  if (completedThisWeek >= 5) mochiText = "You're on fire! Keep up the amazing work! 🔥";
-
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ padding: '0 20px 20px 20px' }}>
       
-      {/* XP / Level Card */}
-      <div style={{ background: 'linear-gradient(135deg, #5b8def, #7b61ff)', borderRadius: '20px', padding: '20px', color: 'white', marginBottom: '20px', marginTop: '10px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: '-10px', right: '-10px' }}>
-          <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Mochi&backgroundColor=transparent" alt={user.petName || "Mochi"} style={{ width: '100px', height: '100px', opacity: 0.9 }} />
-        </div>
-        <h3 style={{ margin: '0 0 10px 0', position: 'relative', zIndex: 1 }}>Welcome back, {user.name}!</h3>
-        <p style={{ margin: '0 0 15px 0', fontSize: '14px', opacity: 0.9, width: '60%', position: 'relative', zIndex: 1 }}>Small steps every day lead to big results.</p>
+      <div style={{ marginBottom: '20px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#2d3748', margin: 0 }}>Good morning,</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#5b8def', margin: 0 }}>{user.petName || "Mochi"}!</h1>
+        <p style={{ fontSize: '14px', color: '#a0aec0', fontWeight: '600', marginTop: '5px' }}>Let's make today productive!</p>
+      </div>
+
+      {/* XP Level Card with Synced Pet Image */}
+      <div style={{ background: 'linear-gradient(135deg, #6b8df7 0%, #8b6bf7 100%)', borderRadius: '24px', padding: '24px', color: 'white', marginBottom: '20px', position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px rgba(107, 141, 247, 0.3)' }}>
         
-        <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '10px', padding: '10px', position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '5px' }}>
-            <span>Level {user.level}</span>
+        <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '110px', height: '110px', background: 'rgba(255,255,255,0.15)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '60px' }}>🐱</span>}
+        </div>
+
+        <p style={{ margin: '0 0 5px 0', fontSize: '14px', fontWeight: '700', opacity: 0.9 }}>Your Study Level</p>
+        <h2 style={{ margin: '0 0 15px 0', fontSize: '32px', fontWeight: '800' }}>Level {user.level}</h2>
+        
+        <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: '12px', padding: '12px', position: 'relative', zIndex: 1, width: '80%' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '700', marginBottom: '8px' }}>
             <span>{xpProgress} / 100 XP</span>
           </div>
-          <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: '4px' }}>
-            <div style={{ width: `${xpProgress}%`, height: '100%', backgroundColor: 'white', borderRadius: '4px', transition: 'width 0.3s' }}></div>
+          <div style={{ width: '100%', height: '10px', backgroundColor: 'rgba(255,255,255,0.3)', borderRadius: '5px' }}>
+            <div style={{ width: `${xpProgress}%`, height: '100%', backgroundColor: 'white', borderRadius: '5px', transition: 'width 0.3s' }}></div>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '15px' }}>
-        <StatCard icon={<ListTodo size={18} color="#5b8def" />} label="Total" value={totalTasks} bgColor="#e6f0ff" />
-        <StatCard icon={<CheckCircle size={18} color="#66d9a0" />} label="Done" value={completedTasks} bgColor="#e6fcef" />
-        <StatCard icon={<AlertCircle size={18} color="#eb5757" />} label="Missed" value={missedCount} bgColor="#ffe6e6" />
+      {/* Stat Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+        <div className="card" style={{ padding: '16px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 0 }}>
+          <div style={{ backgroundColor: '#e6f0ff', padding: '10px', borderRadius: '14px', marginBottom: '8px' }}><ListTodo size={20} color="#5b8def" /></div>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>{totalTasks}</h3>
+          <p style={{ margin: 0, fontSize: '10px', color: '#a0aec0', fontWeight: '700' }}>Total Tasks</p>
+        </div>
         
-        <div style={{ position: 'relative' }}>
-          <StatCard icon={<Flame size={18} color="#ed8936" />} label="Streak" value={user.streak} bgColor="#fef3c7" />
+        <div className="card" style={{ padding: '16px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 0 }}>
+          <div style={{ backgroundColor: '#e6fcef', padding: '10px', borderRadius: '14px', marginBottom: '8px' }}><CheckCircle size={20} color="#66d9a0" /></div>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>{completedTasks}</h3>
+          <p style={{ margin: 0, fontSize: '10px', color: '#a0aec0', fontWeight: '700' }}>Completed</p>
+        </div>
+        
+        <div className="card" style={{ padding: '16px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 0 }}>
+          <div style={{ backgroundColor: '#fff9e6', padding: '10px', borderRadius: '14px', marginBottom: '8px' }}><Clock size={20} color="#f2c94c" /></div>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>{dueTodayCount}</h3>
+          <p style={{ margin: 0, fontSize: '10px', color: '#a0aec0', fontWeight: '700' }}>Due Today</p>
+        </div>
+        
+        <div className="card" style={{ padding: '16px 10px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 0, position: 'relative' }}>
+          <div style={{ backgroundColor: '#ffe6e6', padding: '10px', borderRadius: '14px', marginBottom: '8px' }}><Flame size={20} color="#eb5757" /></div>
+          <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>{user.streak}</h3>
+          <p style={{ margin: 0, fontSize: '10px', color: '#a0aec0', fontWeight: '700' }}>Streak</p>
           {user.streakFreezes > 0 && (
-            <div style={{ position: 'absolute', top: '5px', right: '5px', backgroundColor: '#5b8def', color: 'white', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 'bold', zIndex: 2 }}>
-              ❄️
-            </div>
+             <div style={{ position: 'absolute', top: '-5px', right: '-5px', backgroundColor: '#5b8def', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px' }}>❄️</div>
           )}
         </div>
       </div>
 
-      {/* Due Today Wide Card */}
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ backgroundColor: 'white', borderRadius: '15px', padding: '15px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div style={{ backgroundColor: '#fff9e6', padding: '10px', borderRadius: '10px', display: 'flex' }}>
-            <Clock size={20} color="#f2c94c" />
-          </div>
-          <div>
-            <p style={{ margin: 0, fontSize: '12px', color: '#a0aec0', fontWeight: 'bold' }}>Due Today</p>
-            <h3 style={{ margin: 0, fontSize: '18px' }}>{dueTodayCount}</h3>
-          </div>
-        </div>
-      </div>
-
-      {/* Weekly Progress Summary */}
-      <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-          <h3 style={{ margin: 0, fontSize: '16px', color: '#2d3748' }}>Weekly Progress</h3>
-          <span style={{ fontSize: '12px', color: '#a0aec0' }}>Last 7 Days</span>
+      {/* Weekly Progress */}
+      <div className="card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+          <span style={{ fontSize: '20px' }}>📊</span>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '800' }}>Weekly Progress</h3>
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#66d9a0' }}>{completedThisWeek}</div>
-              <div style={{ fontSize: '12px', color: '#a0aec0' }}>Completed</div>
+            <div>
+              <div style={{ fontSize: '24px', fontWeight: '800', color: '#66d9a0' }}>{completedThisWeek}</div>
+              <div style={{ fontSize: '12px', color: '#a0aec0', fontWeight: '700' }}>Completed</div>
             </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#5b8def' }}>{totalThisWeek}</div>
-              <div style={{ fontSize: '12px', color: '#a0aec0' }}>Assigned</div>
+            <div>
+              <div style={{ fontSize: '24px', fontWeight: '800', color: '#5b8def' }}>{totalThisWeek}</div>
+              <div style={{ fontSize: '12px', color: '#a0aec0', fontWeight: '700' }}>Remaining</div>
             </div>
           </div>
           
-          <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: `conic-gradient(#5b8def ${weeklyProgress}%, #e2e8f0 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: '#2d3748' }}>
-              {weeklyProgress}%
+          <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: `conic-gradient(#5b8def ${weeklyProgress}%, #e2e8f0 0)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '54px', height: '54px', borderRadius: '50%', backgroundColor: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '14px', fontWeight: '800', color: '#2d3748' }}>{weeklyProgress}%</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Mochi Dialogue */}
-      <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', display: 'flex', alignItems: 'center', gap: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
-        <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Mochi&backgroundColor=transparent" alt={user.petName || "Mochi"} style={{ width: '50px', height: '50px' }} />
-        <div style={{ backgroundColor: '#f4f7fb', padding: '12px 15px', borderRadius: '15px', borderTopLeftRadius: '0', flex: 1 }}>
-          <p style={{ margin: 0, fontSize: '14px', color: '#4a5568', fontStyle: 'italic' }}>"{mochiText}"</p>
+      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '15px', background: '#f4f7fb', border: '1px solid #e2e8f0' }}>
+        <div style={{ width: '50px', height: '50px', overflow: 'hidden', borderRadius: '50%' }}>
+          {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '40px' }}>🐱</span>}
+        </div>
+        <div style={{ background: 'white', padding: '12px 16px', borderRadius: '16px', borderTopLeftRadius: '0', flex: 1, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: '#4a5568', fontWeight: '600', fontStyle: 'italic' }}>
+            "{dueTodayCount > 0 ? `You have ${dueTodayCount} tasks due today. You got this!` : "Small steps every day lead to big results!"}"
+          </p>
         </div>
       </div>
 
@@ -117,14 +128,3 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ icon, label, value, bgColor }) {
-  return (
-    <div style={{ backgroundColor: 'white', padding: '12px 5px', borderRadius: '15px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-      <div style={{ backgroundColor: bgColor, padding: '8px', borderRadius: '10px', display: 'flex', marginBottom: '8px' }}>
-        {icon}
-      </div>
-      <h3 style={{ margin: 0, fontSize: '18px', color: '#2d3748' }}>{value}</h3>
-      <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#a0aec0', fontWeight: 'bold' }}>{label}</p>
-    </div>
-  );
-}

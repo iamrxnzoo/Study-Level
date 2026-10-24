@@ -8,12 +8,21 @@ export default function Layout() {
   const location = useLocation();
   const { user } = useApp();
 
+  // Load dynamic pet image
+  const petFiles = import.meta.glob('/public/images/pets/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
+  const petChoices = Object.keys(petFiles).map(path => {
+    const fileName = path.split('/').pop();
+    const id = fileName.split('.')[0];
+    return { id, src: `/images/pets/${fileName}` };
+  });
+  const currentPetImage = petChoices.find(p => p.id === user.petType)?.src || petChoices[0]?.src;
+
   const navItems = [
-    { path: '/', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-    { path: '/tasks', icon: <CheckSquare size={20} />, label: 'Task Management' },
-    { path: '/calendar', icon: <Calendar size={20} />, label: 'Calendar' },
-    { path: '/rewards', icon: <Gift size={20} />, label: 'Rewards' }, // NEW TAB
-    { path: '/profile', icon: <User size={20} />, label: 'Profile' },
+    { path: '/', icon: <LayoutDashboard size={22} />, label: 'Dashboard' },
+    { path: '/tasks', icon: <CheckSquare size={22} />, label: 'Task Management' },
+    { path: '/calendar', icon: <Calendar size={22} />, label: 'Tasks Needing Attention' },
+    { path: '/rewards', icon: <Gift size={22} />, label: 'Rewards' },
+    { path: '/profile', icon: <User size={22} />, label: 'My Profile' },
   ];
 
   const closeSidebar = () => setIsSidebarOpen(false);
@@ -22,26 +31,31 @@ export default function Layout() {
     <div className="app-container">
       <header className="top-header">
         <button onClick={() => setIsSidebarOpen(true)} className="menu-btn">
-          <Menu size={24} color="#2d3748" />
+          <Menu size={28} color="#2d3748" />
         </button>
-        <div className="logo-text">StudyLevel</div>
-        <div style={{ width: '24px' }}></div>
+        <div className="logo-text">
+          <span style={{ fontSize: '24px' }}>📚</span> StudyLevel
+        </div>
+        <div style={{ width: '28px' }}></div>
       </header>
 
       {isSidebarOpen && <div className="sidebar-overlay" onClick={closeSidebar}></div>}
 
       <nav className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
-        <div style={{ backgroundColor: '#f4f7fb', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', borderBottom: '1px solid #edf2f7' }}>
-          <button onClick={closeSidebar} style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', cursor: 'pointer' }}>
-            <X size={20} color="#a0aec0" />
-          </button>
-          <div style={{ position: 'relative', marginBottom: '10px' }}>
-            <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Mochi&backgroundColor=e6f0ff" alt="Mochi" style={{ width: '70px', height: '70px', borderRadius: '50%', border: '3px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }} />
-            {user.equipped === 'wizard_hat' && <span style={{ position: 'absolute', top: '-12px', right: '-10px', fontSize: '24px', transform: 'rotate(15deg)' }}>🎩</span>}
-            {user.equipped === 'glasses' && <span style={{ position: 'absolute', top: '25px', right: '-10px', fontSize: '24px' }}>👓</span>}
+        
+        <div className="sidebar-header">
+          <div className="sidebar-user">
+            <div className="avatar-placeholder" style={{ overflow: 'hidden', padding: 0 }}>
+               {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : user.petName?.charAt(0) || "M"}
+            </div>
+            <div>
+              <h3>{user.name || "Student"}</h3>
+              <p>Level {user.level} • {user.xp % 100}/100 XP</p>
+            </div>
           </div>
-          <h3 style={{ margin: 0, fontSize: '16px' }}>{user.petName || "Mochi"}</h3>
-          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#a0aec0' }}>Level {user.level} • {user.xp % 100}/100 XP</p>
+          <button onClick={closeSidebar} className="close-btn">
+            <X size={24} color="#a0aec0" />
+          </button>
         </div>
 
         <div className="sidebar-links">
@@ -56,12 +70,23 @@ export default function Layout() {
           })}
         </div>
 
-        <div className="sidebar-footer">
-          <button className="logout-btn"><LogOut size={20} /><span>Log Out</span></button>
+        <div className="sidebar-footer" style={{ textAlign: 'center', padding: '20px' }}>
+          {/* Dynamic Pet Image at the bottom */}
+          <div style={{ width: '100px', height: '100px', margin: '0 auto 10px auto', backgroundColor: '#f4f7fb', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '50px' }}>🐱</span>}
+          </div>
+          <p style={{ fontSize: '13px', color: '#a0aec0', fontWeight: '800', fontStyle: 'italic', marginBottom: '20px' }}>"Study today, level up tomorrow!"</p>
+          
+          <button className="logout-btn" style={{ justifyContent: 'center' }}>
+            <LogOut size={20} />
+            <span>Log Out</span>
+          </button>
         </div>
       </nav>
 
-      <main className="main-content"><Outlet /></main>
+      <main className="main-content">
+        <Outlet />
+      </main>
     </div>
   );
 }

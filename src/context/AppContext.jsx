@@ -11,7 +11,7 @@ export function AppProvider({ children }) {
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem('studylevel_user');
     return saved ? JSON.parse(saved) : { 
-      name: "Marlow", 
+      name: "Student", 
       level: 1, 
       xp: 0, 
       streak: 0, 
@@ -24,7 +24,8 @@ export function AppProvider({ children }) {
       petName: "Mochi",
       petType: "cat",
       subjects: ["Math", "Science", "English", "Filipino"],
-      accessoryPositions: {} // Stores custom X, Y, Tilt, Scale
+      accessoryPositions: {},
+      isSetupComplete: false // NEW: Tracks if first-time setup is done
     };
   });
 
@@ -57,6 +58,17 @@ export function AppProvider({ children }) {
       }
     }
   }, []); 
+
+  // NEW: Setup function for first-time users
+  const completeSetup = (realName, petName) => {
+    setUser(prev => ({ 
+      ...prev, 
+      name: realName || "Student", 
+      petName: petName || "Mochi", 
+      isSetupComplete: true 
+    }));
+    logEvent("SETUP_COMPLETE", `Name: ${realName}, Pet: ${petName}`);
+  };
 
   const addTask = (task) => {
     setTasks(prev => [...prev, task]);
@@ -162,7 +174,7 @@ export function AppProvider({ children }) {
   };
 
   return (
-    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, changePetType, addSubject, updateAccessoryPosition }}>
+    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, changePetType, addSubject, updateAccessoryPosition, completeSetup }}>
       {children}
     </AppContext.Provider>
   );
