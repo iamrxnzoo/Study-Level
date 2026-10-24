@@ -43,7 +43,7 @@ export const themes = {
     font: "'Nunito', sans-serif",
     bgColor: '#0B0F19',
     // This points to the image you put in public/images/space-bg.jpg
-    bgPattern: 'url("/images/space-bg.jpg")', 
+    bgPattern: 'url("/images/themes/space-bg.jpg")', 
     bgSize: 'cover',
     bgPosition: 'center',
     primaryColor: '#38BDF8',

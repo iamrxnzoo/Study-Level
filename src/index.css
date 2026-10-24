@@ -15,6 +15,7 @@ body {
   color: var(--text-main);
   min-height: 100vh;
   transition: background-color 0.3s, color 0.3s;
+  overflow-x: hidden;
 }
 
 .app-container {
@@ -22,8 +23,8 @@ body {
   margin: 0 auto;
   min-height: 100vh;
   position: relative;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(10px); 
+  background: rgba(255, 255, 255, 0.05); /* Very subtle frosted glass */
+  backdrop-filter: blur(10px);
 }
 
 .main-content {
@@ -51,6 +52,7 @@ body {
   display: flex;
   align-items: center;
   box-shadow: 0 4px 0 var(--card-border);
+  color: var(--text-main);
 }
 
 .menu-btn:active {
@@ -74,7 +76,7 @@ body {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0,0,0,0.2);
+  background-color: rgba(0,0,0,0.4);
   z-index: 40;
   backdrop-filter: blur(4px);
 }
@@ -83,22 +85,22 @@ body {
 .sidebar {
   position: fixed;
   top: 0;
-  left: -320px;
+  left: -320px; /* Hidden by default */
   width: 280px;
   height: 100vh;
-  background-color: var(--bg-color);
+  background-color: var(--card-bg);
   z-index: 50;
   transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
-  box-shadow: 8px 0 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 8px 0 30px rgba(0, 0, 0, 0.2);
   border-top-right-radius: 40px;
   border-bottom-right-radius: 40px;
   border-right: 4px dashed var(--card-border);
 }
 
 .sidebar.open {
-  left: 0;
+  left: 0; /* Slides in */
 }
 
 .sidebar-header {
@@ -220,7 +222,7 @@ body {
   box-shadow: none;
 }
 
-/* TEXT CHIPS (For fixing contrast issues) */
+/* TEXT CHIPS */
 .text-chip {
   background-color: var(--chip-bg);
   color: var(--chip-color);

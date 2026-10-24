@@ -119,22 +119,13 @@ export default function Profile() {
         <MenuRow icon={<Shield size={20} color="var(--primary)" />} title="Account Information" subtitle="View and edit your details" />
         <MenuRow icon={<Bell size={20} color="var(--chip-color)" />} title="Notifications" subtitle="Manage your notifications" />
         
-        {/* Theme Selector */}
+        {/* Theme Selector - ONLY ONE NOW */}
         <div style={{ padding: '15px 20px', borderBottom: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <div style={{ backgroundColor: 'var(--chip-bg)', padding: '8px', borderRadius: '10px' }}><Moon size={20} color="var(--primary)" /></div>
             <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>Theme</h4>
           </div>
           <select 
-            value={user.theme || 'cute'} 
-            onChange={(e) => changeTheme(e.target.value)}
-            style={{ padding: '8px', borderRadius: '10px', border: '2px solid var(--card-border)', backgroundColor: 'var(--bg-color)', color: 'var(--text-main)', fontWeight: '600', outline: 'none', fontSize: '13px' }}
-          >
-            <option value="cute">Cute Core 🌸</option>
-            <option value="ocean">Deep Ocean 🌊</option>
-            <option value="dark">Midnight 🌙</option>
-          </select>
-                    <select 
             value={user.theme || 'cute'} 
             onChange={(e) => changeTheme(e.target.value)}
             style={{ padding: '8px', borderRadius: '10px', border: '2px solid var(--card-border)', backgroundColor: 'var(--bg-color)', color: 'var(--text-main)', fontWeight: '600', outline: 'none', fontSize: '13px' }}
@@ -223,7 +214,6 @@ export default function Profile() {
                         ))
                       )}
                       
-                      {/* Locked Custom Art */}
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                         <div style={{ width: '80px', height: '80px', backgroundColor: 'var(--card-bg)', borderRadius: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5, position: 'relative', border: '2px solid var(--card-border)' }}>
                           <Paintbrush size={30} color="var(--text-muted)" />

@@ -20,7 +20,7 @@ export default function Layout() {
   const navItems = [
     { path: '/', icon: <LayoutDashboard size={22} />, label: 'Dashboard' },
     { path: '/tasks', icon: <CheckSquare size={22} />, label: 'Task Management' },
-    { path: '/calendar', icon: <Calendar size={22} />, label: 'Tasks Needing Attention' },
+    { path: '/calendar', icon: <Calendar size={22} />, label: 'Calendar' },
     { path: '/rewards', icon: <Gift size={22} />, label: 'Rewards' },
     { path: '/profile', icon: <User size={22} />, label: 'My Profile' },
   ];

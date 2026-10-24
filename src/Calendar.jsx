@@ -53,7 +53,7 @@ export default function Calendar() {
       
       <div style={{ marginBottom: '20px' }}>
         <h2 style={{ margin: 0, fontSize: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ color: '#5b8def' }}>📅</span> Tasks Needing Attention
+          <span style={{ color: '#5b8def' }}>📅</span> Calendar
         </h2>
         <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#a0aec0' }}>Overdue and upcoming deadlines</p>
       </div>
