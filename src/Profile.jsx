@@ -7,15 +7,14 @@ export default function Profile() {
   const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Accessories');
   
-  // Workflow state
   const [editingAccessory, setEditingAccessory] = useState(null); 
   const [currentPos, setCurrentPos] = useState({ x: 10, y: 10, rotate: 0, scale: 100 });
 
   const xpProgress = user.xp % 100;
 
   // Dynamic Image Loading
-  const petFiles = import.meta.glob('/public/images/pets/*.{png,jpg,jpeg,svg}', { eager: true });
-  const accessoryFiles = import.meta.glob('/public/images/accessories/*.{png,jpg,jpeg,svg}', { eager: true });
+  const petFiles = import.meta.glob('/public/images/pets/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
+  const accessoryFiles = import.meta.glob('/public/images/accessories/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
 
   const formatFiles = (filesObj, folder) => {
     return Object.keys(filesObj).map(path => {
@@ -32,6 +31,27 @@ export default function Profile() {
   const currentPetImage = petChoices.find(p => p.id === user.petType)?.src || petChoices[0]?.src;
   const currentAccessoryImage = accessoryChoices.find(a => a.id === user.equipped)?.src;
   const activePos = user.accessoryPositions?.[user.equipped] || { x: 10, y: 10, rotate: 0, scale: 100 };
+
+  // --- THE UNLOCK LOGIC ---
+  // Hardcoded premium items that require levels
+  const premiumItems = {
+    wizard_hat: { reqLevel: 2, text: "Lvl 2" },
+    glasses: { reqLevel: 3, text: "Lvl 3" },
+    golden_aura: { reqLevel: 5, text: "Lvl 5" } // Future proofing
+  };
+
+  const isUnlocked = (itemId) => {
+    // 1. Check if it's a premium item
+    if (premiumItems[itemId]) {
+      return user.level >= premiumItems[itemId].reqLevel;
+    }
+    // 2. If it's NOT in the premium list, it's a freebie. Always unlock it.
+    return true; 
+  };
+
+  const getRequirementText = (itemId) => {
+    return premiumItems[itemId] ? premiumItems[itemId].text : null;
+  };
 
   const handleRename = () => {
     const newName = window.prompt("Enter a new name for your pet:", user.petName || "Mochi");
@@ -51,8 +71,6 @@ export default function Profile() {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
-
-  const isUnlocked = (item) => user.inventory.includes(item) || item === 'default' || item === 'cat'; 
 
   const handleStartAdjusting = (accessoryId) => {
     equipCosmetic(accessoryId);
@@ -170,7 +188,7 @@ export default function Profile() {
                   {activeTab === 'Accessories' && (
                     <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                       {accessoryChoices.length === 0 ? (
-                        <p style={{ color: '#a0aec0', fontSize: '14px', width: '100%', textAlign: 'center' }}>No accessories found.</p>
+                        <p style={{ color: '#a0aec0', fontSize: '14px', width: '100%', textAlign: 'center' }}>No accessories found. Add PNGs to public/images/accessories.</p>
                       ) : (
                         accessoryChoices.map(item => (
                           <WardrobeItem 
@@ -180,7 +198,7 @@ export default function Profile() {
                             isUnlocked={isUnlocked(item.id)} 
                             isEquipped={user.equipped === item.id} 
                             onClick={() => handleStartAdjusting(item.id)}
-                            req={item.id === 'wizard_hat' ? 'Lvl 2' : item.id === 'glasses' ? 'Lvl 3' : null} 
+                            req={getRequirementText(item.id)} 
                           />
                         ))
                       )}
@@ -295,11 +313,28 @@ function WardrobeItem({ icon, image, name, isUnlocked, isEquipped, onClick, req 
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
       <div 
         onClick={() => isUnlocked && onClick()}
-        style={{ width: '80px', height: '80px', backgroundColor: '#f4f7fb', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', cursor: isUnlocked ? 'pointer' : 'not-allowed', border: isEquipped ? '3px solid #5b8def' : '3px solid transparent', opacity: isUnlocked ? 1 : 0.4, position: 'relative', transition: 'all 0.2s ease', overflow: 'hidden' }}
+        style={{ 
+          width: '80px', height: '80px', backgroundColor: '#f4f7fb', borderRadius: '20px', 
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', 
+          cursor: isUnlocked ? 'pointer' : 'not-allowed', 
+          border: isEquipped ? '3px solid #5b8def' : '3px solid transparent', 
+          opacity: isUnlocked ? 1 : 0.4, position: 'relative', transition: 'all 0.2s ease',
+          padding: '10px'
+        }}
       >
         {image ? <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : icon}
+        
         {!isUnlocked && <Lock size={24} color="#4a5568" style={{ position: 'absolute' }} />}
-        {isEquipped && <div style={{ position: 'absolute', bottom: '5px', right: '5px', backgroundColor: '#5b8def', borderRadius: '50%', padding: '3px', zIndex: 10 }}><Check size={14} color="white" /></div>}
+        
+        {isEquipped && (
+          <div style={{ 
+            position: 'absolute', top: '-8px', right: '-8px', 
+            backgroundColor: '#5b8def', borderRadius: '50%', padding: '4px', 
+            zIndex: 10, border: '2px solid white', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' 
+          }}>
+            <Check size={14} color="white" strokeWidth={3} />
+          </div>
+        )}
       </div>
       <div style={{ textAlign: 'center' }}>
         <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: '#2d3748' }}>{name}</p>
