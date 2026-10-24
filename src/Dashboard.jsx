@@ -35,24 +35,25 @@ export default function Dashboard() {
         <p style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: '600', marginTop: '5px' }}>Let's make today super productive! 🌸</p>
       </div>
 
-      <div style={{ background: 'var(--primary)', borderRadius: '30px', padding: '25px', color: 'var(--text-on-primary)', marginBottom: '25px', position: 'relative', overflow: 'hidden', boxShadow: `0 8px 0 var(--secondary), 0 15px 25px rgba(0,0,0,0.2)`, border: '3px solid var(--card-border)' }}>
+      <div style={{ background: 'var(--card-bg)', borderRadius: '30px', padding: '25px', color: 'var(--text-main)', marginBottom: '25px', position: 'relative', overflow: 'hidden', boxShadow: `0 8px 0 var(--card-border), 0 15px 25px rgba(0,0,0,0.2)`, border: '3px solid var(--card-border)' }}>
         
-        <Star size={16} fill="currentColor" style={{ position: 'absolute', top: '15px', left: '15px', opacity: 0.3 }} />
-        <Star size={24} fill="currentColor" style={{ position: 'absolute', bottom: '20px', right: '30px', opacity: 0.2 }} />
+        <Star size={16} fill="currentColor" style={{ position: 'absolute', top: '15px', left: '15px', opacity: 0.1 }} />
+        <Star size={24} fill="currentColor" style={{ position: 'absolute', bottom: '20px', right: '30px', opacity: 0.1 }} />
 
-        <div style={{ position: 'absolute', top: '-15px', right: '-15px', width: '120px', height: '120px', background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '4px solid var(--card-border)' }}>
+        <div style={{ position: 'absolute', top: '-15px', right: '-15px', width: '120px', height: '120px', background: 'var(--chip-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '4px solid var(--card-border)' }}>
           {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '60px' }}>🐱</span>}
         </div>
 
-        <p style={{ margin: '0 0 5px 0', fontSize: '15px', fontWeight: '600', opacity: 0.9 }}>Your Study Level</p>
-        <h2 style={{ margin: '0 0 15px 0', fontSize: '36px', fontWeight: '700' }}>Level {user.level}</h2>
+        <p style={{ margin: '0 0 5px 0', fontSize: '15px', fontWeight: '600', color: 'var(--text-muted)' }}>Your Study Level</p>
+        <h2 style={{ margin: '0 0 15px 0', fontSize: '36px', fontWeight: '700', color: 'var(--text-main)' }}>Level {user.level}</h2>
         
-        <div style={{ background: 'rgba(255,255,255,0.3)', borderRadius: '15px', padding: '12px', position: 'relative', zIndex: 1, width: '75%', border: '2px solid rgba(255,255,255,0.4)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: '700', marginBottom: '8px' }}>
+        <div style={{ background: 'var(--chip-bg)', borderRadius: '15px', padding: '12px', position: 'relative', zIndex: 1, width: '75%', border: '2px solid var(--card-border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: '700', marginBottom: '8px', color: 'var(--text-main)' }}>
             <span>{xpProgress} / 100 XP</span>
           </div>
-          <div style={{ width: '100%', height: '12px', backgroundColor: 'rgba(255,255,255,0.4)', borderRadius: '6px' }}>
-            <div style={{ width: `${xpProgress}%`, height: '100%', backgroundColor: 'white', borderRadius: '6px', transition: 'width 0.3s' }}></div>
+          <div style={{ width: '100%', height: '12px', backgroundColor: 'var(--card-border)', borderRadius: '6px' }}>
+            {/* THE XP BAR uses primary color now */}
+            <div style={{ width: `${xpProgress}%`, height: '100%', backgroundColor: 'var(--primary)', borderRadius: '6px', transition: 'width 0.3s', boxShadow: '0 0 10px var(--primary)' }}></div>
           </div>
         </div>
       </div>
@@ -81,7 +82,7 @@ export default function Dashboard() {
           <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: 'var(--text-main)' }}>{user.streak}</h3>
           <p className="text-chip" style={{ margin: '5px 0 0 0', fontSize: '10px' }}>Streak</p>
           {user.streakFreezes > 0 && (
-             <div style={{ position: 'absolute', top: '-8px', right: '-8px', backgroundColor: '#5B8DEF', color: 'white', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', border: '2px solid white' }}>❄️</div>
+             <div style={{ position: 'absolute', top: '-8px', right: '-8px', backgroundColor: 'var(--primary)', color: 'var(--text-on-primary)', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', border: '2px solid var(--card-border)' }}>❄️</div>
           )}
         </div>
       </div>

@@ -1,18 +1,18 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useApp } from './context/AppContext';
-import { Bell, HelpCircle, LogOut, Download, Shield, Lock, X, Check, Edit2, Shirt, ChevronLeft, Paintbrush, Moon } from 'lucide-react';
+import { Bell, HelpCircle, LogOut, Download, Upload, Shield, Lock, X, Check, Edit2, Shirt, ChevronLeft, Paintbrush, Moon } from 'lucide-react';
 
 export default function Profile() {
-  const { user, tasks, analytics, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition, changeTheme } = useApp();
+  const { user, tasks, analytics, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition, changeTheme, importData } = useApp();
   const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Accessories');
+  const fileInputRef = useRef(null);
   
   const [editingAccessory, setEditingAccessory] = useState(null); 
   const [currentPos, setCurrentPos] = useState({ x: 0, y: 0, rotate: 0, scale: 100 });
 
   const xpProgress = user.xp % 100;
 
-  // Dynamic Image Loading
   const petFiles = import.meta.glob('/public/images/pets/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
   const accessoryFiles = import.meta.glob('/public/images/accessories/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
 
@@ -66,6 +66,25 @@ export default function Profile() {
     URL.revokeObjectURL(url);
   };
 
+  const handleImportData = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const json = JSON.parse(e.target.result);
+        importData(json);
+        alert("Data imported successfully! Refreshing...");
+        window.location.reload();
+      } catch (error) {
+        alert("Invalid JSON file.");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = null; // reset input
+  };
+
   const handleStartAdjusting = (accessoryId) => {
     equipCosmetic(accessoryId);
     setCurrentPos(user.accessoryPositions?.[accessoryId] || { x: 0, y: 0, rotate: 0, scale: 100 });
@@ -80,10 +99,9 @@ export default function Profile() {
   return (
     <div style={{ padding: '0 20px 20px 20px' }}>
       
-      {/* Header */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px', marginTop: '10px' }}>
         
-        <div style={{ width: '140px', height: '140px', backgroundColor: 'var(--card-bg)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative', border: '4px solid var(--card-border)', boxShadow: 'var(--card-shadow)', overflow: 'hidden' }}>
+        <div style={{ width: '140px', height: '140px', backgroundColor: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative', border: '4px solid var(--card-border)', boxShadow: 'var(--card-shadow)', overflow: 'hidden' }}>
           {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '50px' }}>🐱</span>}
           
           {currentAccessoryImage && (
@@ -114,12 +132,10 @@ export default function Profile() {
         </button>
       </div>
 
-      {/* Menu List */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <MenuRow icon={<Shield size={20} color="var(--primary)" />} title="Account Information" subtitle="View and edit your details" />
         <MenuRow icon={<Bell size={20} color="var(--chip-color)" />} title="Notifications" subtitle="Manage your notifications" />
         
-        {/* Theme Selector - ONLY ONE NOW */}
         <div style={{ padding: '15px 20px', borderBottom: '1px solid var(--card-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <div style={{ backgroundColor: 'var(--chip-bg)', padding: '8px', borderRadius: '10px' }}><Moon size={20} color="var(--primary)" /></div>
@@ -145,6 +161,15 @@ export default function Profile() {
             <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>Download your data as JSON</p>
           </div>
         </div>
+
+        <div onClick={() => fileInputRef.current.click()} style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', cursor: 'pointer', borderTop: '1px solid var(--card-border)' }}>
+          <div style={{ marginRight: '15px', backgroundColor: 'var(--chip-bg)', padding: '8px', borderRadius: '10px' }}><Upload size={20} color="var(--primary)" /></div>
+          <div style={{ flex: 1 }}>
+            <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>Import Data</h4>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>Restore from a JSON backup</p>
+          </div>
+        </div>
+        <input type="file" accept=".json" ref={fileInputRef} onChange={handleImportData} style={{ display: 'none' }} />
       </div>
 
       <button className="logout-btn" style={{ marginTop: '10px' }}>

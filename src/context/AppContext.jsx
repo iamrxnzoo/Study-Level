@@ -25,8 +25,8 @@ export function AppProvider({ children }) {
       petType: "cat",
       subjects: ["Math", "Science", "English", "Filipino"],
       accessoryPositions: {},
-      isSetupComplete: false, // Fixed: Added comma here
-      theme: 'cute' // Added theme here
+      isSetupComplete: false,
+      theme: 'cute'
     };
   });
 
@@ -74,6 +74,13 @@ export function AppProvider({ children }) {
   const changeTheme = (themeId) => {
     setUser(prev => ({ ...prev, theme: themeId }));
     logEvent("THEME_CHANGED", themeId);
+  };
+
+  const importData = (data) => {
+    if (data.tasks) setTasks(data.tasks);
+    if (data.user) setUser(data.user);
+    if (data.analytics) setAnalytics(data.analytics);
+    logEvent("DATA_IMPORTED");
   };
 
   const addTask = (task) => {
@@ -180,7 +187,7 @@ export function AppProvider({ children }) {
   };
 
   return (
-    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, changePetType, addSubject, updateAccessoryPosition, completeSetup, changeTheme }}>
+    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, changePetType, addSubject, updateAccessoryPosition, completeSetup, changeTheme, importData }}>
       {children}
     </AppContext.Provider>
   );
