@@ -30,11 +30,18 @@ export default function Profile() {
 
   const isUnlocked = (item) => user.inventory.includes(item);
 
-  // Placeholder image URLs (replace with your actual images later)
+  // --- REAL IMAGES ---
+  // Replace these paths with your actual file names in public/images
   const petImages = {
-    cat: "https://api.dicebear.com/7.x/notionists/svg?seed=Mochi&backgroundColor=e6f0ff",
-    fox: "https://api.dicebear.com/7.x/notionists/svg?seed=Foxy&backgroundColor=ffecd2",
-    panda: "https://api.dicebear.com/7.x/notionists/svg?seed=Panda&backgroundColor=e2e8f0"
+    cat: "/images/cat.png", 
+    fox: "/images/fox.png",
+    panda: "/images/panda.png"
+  };
+
+  const accessoryImages = {
+    default: "/images/grad-cap.png",
+    wizard_hat: "/images/wizard-hat.png",
+    glasses: "/images/glasses.png"
   };
 
   return (
@@ -43,13 +50,25 @@ export default function Profile() {
       {/* Header */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px', marginTop: '10px' }}>
         
-        {/* Avatar */}
-        <div style={{ width: '120px', height: '120px', backgroundColor: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative', border: '4px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
-          <img src={petImages[user.petType] || petImages.cat} alt="Pet" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
+        {/* Pet Avatar with Layered Images */}
+        <div style={{ width: '140px', height: '140px', backgroundColor: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative', border: '4px solid white', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
           
-          {/* Equipped Cosmetics Overlay */}
-          {user.equipped === 'wizard_hat' && <span style={{ position: 'absolute', top: '-15px', right: '-10px', fontSize: '40px', transform: 'rotate(15deg)', zIndex: 10 }}>🎩</span>}
-          {user.equipped === 'glasses' && <span style={{ position: 'absolute', top: '40px', right: '-15px', fontSize: '40px', zIndex: 10 }}>👓</span>}
+          {/* Base Pet */}
+          <img 
+            src={petImages[user.petType] || petImages.cat} 
+            alt="Pet" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            onError={(e) => { e.target.src = "https://api.dicebear.com/7.x/notionists/svg?seed=Mochi&backgroundColor=e6f0ff"; }} // Fallback if image is missing
+          />
+          
+          {/* Accessory Overlay */}
+          {user.equipped !== 'default' && (
+            <img 
+              src={accessoryImages[user.equipped]} 
+              alt="Accessory" 
+              style={{ position: 'absolute', top: '10px', right: '10px', width: '60px', height: '60px', objectFit: 'contain', zIndex: 10 }} 
+            />
+          )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -74,7 +93,7 @@ export default function Profile() {
         </button>
       </div>
 
-      {/* Menu List */}
+      {/* Menu List (Same as before) */}
       <div style={{ backgroundColor: 'white', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginBottom: '20px' }}>
         <MenuRow icon={<Shield size={20} color="#5b8def" />} title="Account Information" subtitle="View and edit your details" />
         <MenuRow icon={<Bell size={20} color="#f2c94c" />} title="Notifications" subtitle="Manage your notifications" />
@@ -97,7 +116,7 @@ export default function Profile() {
         Log Out
       </button>
 
-      {/* --- ANIMATED WARDROBE MODAL --- */}
+      {/* WARDROBE MODAL */}
       {isWardrobeOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 100, animation: 'fadeIn 0.3s ease' }}>
           
@@ -117,7 +136,6 @@ export default function Profile() {
               </button>
             </div>
 
-            {/* Tabs */}
             <div style={{ display: 'flex', padding: '15px 20px', gap: '10px', backgroundColor: '#f8fafc' }}>
               {['Accessories', 'Persona', 'Titles'].map(tab => (
                 <button 
@@ -130,14 +148,13 @@ export default function Profile() {
               ))}
             </div>
 
-            {/* Content */}
             <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
               
               {activeTab === 'Accessories' && (
                 <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                  <WardrobeItem icon="🎓" name="Grad Cap" isUnlocked={true} isEquipped={user.equipped === 'default'} onClick={() => equipCosmetic('default')} />
-                  <WardrobeItem icon="🎩" name="Wizard Hat" isUnlocked={isUnlocked('wizard_hat')} isEquipped={user.equipped === 'wizard_hat'} onClick={() => equipCosmetic('wizard_hat')} req="Lvl 2" />
-                  <WardrobeItem icon="👓" name="Glasses" isUnlocked={isUnlocked('glasses')} isEquipped={user.equipped === 'glasses'} onClick={() => equipCosmetic('glasses')} req="Lvl 3" />
+                  <WardrobeItem image={accessoryImages.default} name="Grad Cap" isUnlocked={true} isEquipped={user.equipped === 'default'} onClick={() => equipCosmetic('default')} />
+                  <WardrobeItem image={accessoryImages.wizard_hat} name="Wizard Hat" isUnlocked={isUnlocked('wizard_hat')} isEquipped={user.equipped === 'wizard_hat'} onClick={() => equipCosmetic('wizard_hat')} req="Lvl 2" />
+                  <WardrobeItem image={accessoryImages.glasses} name="Glasses" isUnlocked={isUnlocked('glasses')} isEquipped={user.equipped === 'glasses'} onClick={() => equipCosmetic('glasses')} req="Lvl 3" />
                 </div>
               )}
 
@@ -166,17 +183,24 @@ export default function Profile() {
   );
 }
 
-// Wardrobe Item Component (Supports Icons or Images)
+// Updated WardrobeItem to handle real images
 function WardrobeItem({ icon, image, name, isUnlocked, isEquipped, onClick, req }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
       <div 
         onClick={() => isUnlocked && onClick()}
-        style={{ width: '80px', height: '80px', backgroundColor: '#f4f7fb', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', cursor: isUnlocked ? 'pointer' : 'not-allowed', border: isEquipped ? '3px solid #5b8def' : '3px solid transparent', opacity: isUnlocked ? 1 : 0.4, position: 'relative', transition: 'all 0.2s ease' }}
+        style={{ width: '80px', height: '80px', backgroundColor: '#f4f7fb', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', cursor: isUnlocked ? 'pointer' : 'not-allowed', border: isEquipped ? '3px solid #5b8def' : '3px solid transparent', opacity: isUnlocked ? 1 : 0.4, position: 'relative', transition: 'all 0.2s ease', overflow: 'hidden' }}
       >
-        {image ? <img src={image} alt={name} style={{ width: '100%', height: '100%', borderRadius: '18px' }} /> : icon}
+        {image ? (
+          <img 
+            src={image} 
+            alt={name} 
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+            onError={(e) => { e.target.style.display = 'none'; }} // Hide broken image icon
+          />
+        ) : icon}
         {!isUnlocked && <Lock size={24} color="#4a5568" style={{ position: 'absolute' }} />}
-        {isEquipped && <div style={{ position: 'absolute', bottom: '-5px', right: '-5px', backgroundColor: '#5b8def', borderRadius: '50%', padding: '3px' }}><Check size={14} color="white" /></div>}
+        {isEquipped && <div style={{ position: 'absolute', bottom: '5px', right: '5px', backgroundColor: '#5b8def', borderRadius: '50%', padding: '3px', zIndex: 10 }}><Check size={14} color="white" /></div>}
       </div>
       <div style={{ textAlign: 'center' }}>
         <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold', color: '#2d3748' }}>{name}</p>
