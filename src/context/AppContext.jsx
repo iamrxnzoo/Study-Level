@@ -22,8 +22,9 @@ export function AppProvider({ children }) {
       unlockedTitles: ["Beginner"],
       equippedTitle: "Beginner",
       petName: "Mochi",
-      petType: "cat", // NEW: Default pet is a cat
-      subjects: ["Math", "Science", "English", "Filipino"] 
+      petType: "cat",
+      subjects: ["Math", "Science", "English", "Filipino"],
+      accessoryPositions: {} // Stores custom X, Y, Tilt, Scale
     };
   });
 
@@ -40,7 +41,6 @@ export function AppProvider({ children }) {
     setAnalytics(prev => [...prev, { timestamp: new Date().toISOString(), action, details }]);
   };
 
-  // STREAK CHECKER
   useEffect(() => {
     if (!user.lastActiveDate) return; 
     const today = new Date(); today.setHours(0,0,0,0);
@@ -124,6 +124,19 @@ export function AppProvider({ children }) {
     logEvent("COSMETIC_EQUIPPED", item);
   };
 
+  const updateAccessoryPosition = (item, position) => {
+    setUser(prev => {
+      const currentPositions = prev.accessoryPositions || {};
+      return {
+        ...prev,
+        accessoryPositions: {
+          ...currentPositions,
+          [item]: position
+        }
+      };
+    });
+  };
+
   const equipTitle = (title) => {
     setUser(prev => ({ ...prev, equippedTitle: title }));
     logEvent("TITLE_EQUIPPED", title);
@@ -134,7 +147,6 @@ export function AppProvider({ children }) {
     logEvent("MOCHI_RENAMED", newName);
   };
 
-  // NEW: Change Pet Type (Cat, Fox, etc.)
   const changePetType = (type) => {
     setUser(prev => ({ ...prev, petType: type }));
     logEvent("PET_TYPE_CHANGED", type);
@@ -150,7 +162,7 @@ export function AppProvider({ children }) {
   };
 
   return (
-    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, addSubject, changePetType }}>
+    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, changePetType, addSubject, updateAccessoryPosition }}>
       {children}
     </AppContext.Provider>
   );
