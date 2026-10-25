@@ -6,7 +6,7 @@ import { useApp } from './context/AppContext';
 export default function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
-  const { user } = useApp();
+  const { user, logOut } = useApp();
 
   const petFiles = import.meta.glob('/public/images/pets/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
   const petChoices = Object.keys(petFiles).map(path => {
@@ -14,7 +14,8 @@ export default function Layout() {
     const id = fileName.split('.')[0];
     return { id, src: `/images/pets/${fileName}` };
   });
-  const currentPetImage = petChoices.find(p => p.id === user.petType)?.src || petChoices[0]?.src;
+  
+  const currentPetImage = petChoices.find(p => p.id === user?.pet_type)?.src || petChoices[0]?.src;
 
   const navItems = [
     { path: '/', icon: <LayoutDashboard size={22} />, label: 'Dashboard' },
@@ -44,12 +45,12 @@ export default function Layout() {
         
         <div className="sidebar-header">
           <div className="sidebar-user">
-            <div className="avatar-placeholder">
-               {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : user.petName?.charAt(0) || "M"}
+            <div className="avatar-placeholder" style={{ overflow: 'hidden', padding: 0 }}>
+               {currentPetImage ? <img src={currentPetImage} alt="Pet" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : user?.pet_name?.charAt(0) || "M"}
             </div>
             <div>
-              <h3>{user.name || "Student"}</h3>
-              <p>Level {user.level} • {user.xp % 100}/100 XP</p>
+              <h3>{user?.name || "Student"}</h3>
+              <p>Level {user?.level} • {user?.xp % 100}/100 XP</p>
             </div>
           </div>
           <button onClick={closeSidebar} className="close-btn">
@@ -75,7 +76,8 @@ export default function Layout() {
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', fontStyle: 'italic', marginBottom: '20px' }}>"Study today, level up tomorrow!"</p>
           
-          <button className="logout-btn" style={{ justifyContent: 'center' }}>
+          {/* FIXED: Added onClick={logOut} */}
+          <button className="logout-btn" style={{ justifyContent: 'center' }} onClick={logOut}>
             <LogOut size={20} />
             <span>Log Out</span>
           </button>
