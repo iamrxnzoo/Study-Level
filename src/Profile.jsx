@@ -1,24 +1,19 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useApp } from './context/AppContext';
-import { Bell, HelpCircle, LogOut, Download, Upload, Shield, Lock, X, Check, Edit2, Shirt, ChevronLeft, Paintbrush, Moon } from 'lucide-react';
+import { Bell, HelpCircle, LogOut, Shield, Lock, X, Check, Edit2, Shirt, ChevronLeft, Paintbrush, Moon } from 'lucide-react';
 
 export default function Profile() {
-  const { user, tasks, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition, changeTheme, logOut } = useApp();
+  const { user, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition, changeTheme, logOut } = useApp();
   
   const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Accessories');
-  
-  // Rename State
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [newPetName, setNewPetName] = useState('');
-
-  // Accessory Adjust State
   const [editingAccessory, setEditingAccessory] = useState(null); 
   const [currentPos, setCurrentPos] = useState({ x: 0, y: 0, rotate: 0, scale: 100 });
 
   const xpProgress = (user?.xp || 0) % 100;
 
-  // Dynamic Image Loading
   const petFiles = import.meta.glob('/public/images/pets/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
   const accessoryFiles = import.meta.glob('/public/images/accessories/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
 
@@ -34,7 +29,6 @@ export default function Profile() {
   const petChoices = formatFiles(petFiles, 'pets');
   const accessoryChoices = formatFiles(accessoryFiles, 'accessories');
 
-  // Use Supabase column names (snake_case)
   const currentPetImage = petChoices.find(p => p.id === user?.pet_type)?.src || petChoices[0]?.src;
   const currentAccessoryImage = accessoryChoices.find(a => a.id === user?.equipped)?.src;
   const activePos = user?.accessory_positions?.[user?.equipped] || { x: 0, y: 0, rotate: 0, scale: 100 };
@@ -50,9 +44,7 @@ export default function Profile() {
     return true; 
   };
 
-  const getRequirementText = (itemId) => {
-    return premiumItems[itemId] ? premiumItems[itemId].text : null;
-  };
+  const getRequirementText = (itemId) => premiumItems[itemId] ? premiumItems[itemId].text : null;
 
   const handleRenameSubmit = async (e) => {
     e.preventDefault();
@@ -77,7 +69,6 @@ export default function Profile() {
   return (
     <div style={{ padding: '0 20px 20px 20px' }}>
       
-      {/* Header */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px', marginTop: '10px' }}>
         
         <div style={{ width: '140px', height: '140px', backgroundColor: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative', border: '4px solid var(--card-border)', boxShadow: 'var(--card-shadow)', overflow: 'hidden' }}>
@@ -111,7 +102,6 @@ export default function Profile() {
         </button>
       </div>
 
-      {/* Menu List */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <MenuRow icon={<Shield size={20} color="var(--primary)" />} title="Account Information" subtitle="View and edit your details" />
         <MenuRow icon={<Bell size={20} color="var(--chip-color)" />} title="Notifications" subtitle="Manage your notifications" />
@@ -135,7 +125,7 @@ export default function Profile() {
         <MenuRow icon={<HelpCircle size={20} color="#66d9a0" />} title="Help & Support" subtitle="Get help or contact us" />
       </div>
 
-            <button className="logout-btn" style={{ marginTop: '10px' }} onClick={() => logOut()}>
+      <button className="logout-btn" style={{ marginTop: '10px' }} onClick={() => logOut()}>
         <LogOut size={20} /> Log Out
       </button>
 

@@ -76,8 +76,7 @@ export default function Layout() {
           </div>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: '600', fontStyle: 'italic', marginBottom: '20px' }}>"Study today, level up tomorrow!"</p>
           
-          {/* FIXED: Added onClick={logOut} */}
-          <button className="logout-btn" style={{ justifyContent: 'center' }} onClick={logOut}>
+          <button className="logout-btn" style={{ justifyContent: 'center' }} onClick={() => logOut()}>
             <LogOut size={20} />
             <span>Log Out</span>
           </button>

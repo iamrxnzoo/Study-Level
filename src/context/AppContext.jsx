@@ -29,17 +29,14 @@ export function AppProvider({ children }) {
     if (!session) return;
 
     const fetchData = async () => {
-      // Fetch Tasks
       const { data: tasksData } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
       if (tasksData) setTasks(tasksData);
 
-      // Fetch Profile
       const { data: profileData, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
       
       if (profileData) {
         setUser(profileData);
       } else if (error && error.code === 'PGRST116') { 
-        // Create new profile
         const newUser = {
           id: session.user.id,
           name: "Student",
@@ -67,7 +64,6 @@ export function AppProvider({ children }) {
     fetchData();
   }, [session]);
 
-  // 3. Update Profile Helper
   const updateProfile = async (updates) => {
     setUser(prev => ({ ...prev, ...updates }));
     if (session) {
@@ -75,13 +71,11 @@ export function AppProvider({ children }) {
     }
   };
 
-  // 4. Analytics Logger
   const logEvent = async (action, details = "") => {
     if (!session) return;
     await supabase.from('analytics').insert([{ user_id: session.user.id, action, details }]);
   };
 
-  // 5. STREAK CHECKER (Runs when user data loads)
   useEffect(() => {
     if (!user || !user.last_active_date) return;
 
@@ -91,23 +85,18 @@ export function AppProvider({ children }) {
 
     if (diffInDays > 1) {
       if (user.streak_freezes > 0) {
-        updateProfile({ 
-          streak_freezes: user.streak_freezes - 1, 
-          last_active_date: new Date(today.getTime() - 86400000).toISOString() 
-        });
+        updateProfile({ streak_freezes: user.streak_freezes - 1, last_active_date: new Date(today.getTime() - 86400000).toISOString() });
         logEvent("STREAK_FREEZE_USED");
       } else {
         updateProfile({ streak: 0 });
         logEvent("STREAK_LOST");
       }
     }
-  }, [user?.last_active_date]); // Only runs when last_active_date changes
+  }, [user?.last_active_date]);
 
   const completeSetup = async (realName, petName) => {
     const { error } = await supabase.from('profiles').update({ 
-      name: realName, 
-      pet_name: petName, 
-      is_setup_complete: true 
+      name: realName, pet_name: petName, is_setup_complete: true 
     }).eq('id', session.user.id);
 
     if (error) {
@@ -116,12 +105,7 @@ export function AppProvider({ children }) {
       return;
     }
 
-    setUser(prev => ({ 
-      ...prev, 
-      name: realName, 
-      pet_name: petName, 
-      is_setup_complete: true 
-    }));
+    setUser(prev => ({ ...prev, name: realName, pet_name: petName, is_setup_complete: true }));
     logEvent("SETUP_COMPLETE", `Name: ${realName}, Pet: ${petName}`);
   };
 
@@ -178,30 +162,11 @@ export function AppProvider({ children }) {
     logEvent("TASK_DELETED", taskToDelete?.title || "Unknown");
   };
 
-  const equipCosmetic = (item) => {
-    updateProfile({ equipped: item });
-    logEvent("COSMETIC_EQUIPPED", item);
-  };
-
-  const equipTitle = (title) => {
-    updateProfile({ equipped_title: title });
-    logEvent("TITLE_EQUIPPED", title);
-  };
-
-  const renameMochi = (newName) => {
-    updateProfile({ pet_name: newName });
-    logEvent("MOCHI_RENAMED", newName);
-  };
-
-  const changePetType = (type) => {
-    updateProfile({ pet_type: type });
-    logEvent("PET_TYPE_CHANGED", type);
-  };
-
-  const changeTheme = (themeId) => {
-    updateProfile({ theme: themeId });
-    logEvent("THEME_CHANGED", themeId);
-  };
+  const equipCosmetic = (item) => { updateProfile({ equipped: item }); logEvent("COSMETIC_EQUIPPED", item); };
+  const equipTitle = (title) => { updateProfile({ equipped_title: title }); logEvent("TITLE_EQUIPPED", title); };
+  const renameMochi = (newName) => { updateProfile({ pet_name: newName }); logEvent("MOCHI_RENAMED", newName); };
+  const changePetType = (type) => { updateProfile({ pet_type: type }); logEvent("PET_TYPE_CHANGED", type); };
+  const changeTheme = (themeId) => { updateProfile({ theme: themeId }); logEvent("THEME_CHANGED", themeId); };
   
   const updateAccessoryPosition = (item, position) => {
     updateProfile({ accessory_positions: { ...user.accessory_positions, [item]: position } });
@@ -217,13 +182,20 @@ export function AppProvider({ children }) {
   };
 
   const logOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setTasks([]);
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    } finally {
+      setSession(null);
+      setUser(null);
+      setTasks([]);
+      window.location.href = '/';
+    }
   };
 
   if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '24px', fontWeight: 'bold', color: '#5b8def' }}>Loading StudyLevel...</div>;
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '24px', fontWeight: 'bold', color: 'var(--primary)' }}>Loading StudyLevel...</div>;
   }
 
   return (

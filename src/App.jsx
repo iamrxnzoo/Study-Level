@@ -8,7 +8,7 @@ import Calendar from './Calendar';
 import Profile from './Profile';
 import Rewards from './Rewards';
 import Setup from './Setup';
-import Auth from './Auth'; // <-- Import the new login page
+import Auth from './Auth';
 
 function AppContent() {
   const { session, user } = useApp();
