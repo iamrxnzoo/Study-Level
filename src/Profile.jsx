@@ -47,10 +47,25 @@ export default function Profile() {
     return premiumItems[itemId] ? premiumItems[itemId].text : null;
   };
 
-  const handleRename = () => {
-    const newName = window.prompt("Enter a new name for your pet:", user.petName || "Mochi");
-    if (newName && newName.trim() !== "") renameMochi(newName.trim());
+    // Add this to the top of your component state
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [newPetName, setNewPetName] = useState('');
+
+  // Replace the handleRename function with this:
+  const handleRename = async (e) => {
+    e.preventDefault();
+    if (newPetName.trim() !== "") {
+      await renameMochi(newPetName.trim());
+      setIsRenameModalOpen(false);
+      setNewPetName('');
+    }
   };
+
+  // Update the button to open the modal instead of the prompt
+  // Find the Edit2 button and change its onClick:
+  <button onClick={() => { setNewPetName(user.petName); setIsRenameModalOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+    <Edit2 size={18} color="var(--text-muted)" />
+  </button>
 
   const handleExportData = () => {
     const dataToExport = { user, tasks, analytics, exportedAt: new Date().toISOString() };
@@ -398,6 +413,29 @@ function MenuRow({ icon, title, subtitle }) {
         <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>{title}</h4>
         <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>{subtitle}</p>
       </div>
+            {/* RENAME MODAL */}
+      {isRenameModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px', animation: 'fadeIn 0.2s ease' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', width: '100%', maxWidth: '350px', borderRadius: '30px', padding: '25px', border: '2px solid var(--card-border)', animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--text-main)', fontWeight: '700' }}>Rename Pet</h3>
+              <button onClick={() => setIsRenameModalOpen(false)} style={{ background: 'var(--chip-bg)', border: 'none', borderRadius: '50%', padding: '8px', cursor: 'pointer', display: 'flex' }}>
+                <X size={20} color="var(--text-main)" />
+              </button>
+            </div>
+            <form onSubmit={handleRename}>
+              <input 
+                type="text" 
+                value={newPetName} 
+                onChange={e => setNewPetName(e.target.value)} 
+                autoFocus
+                style={{ width: '100%', padding: '15px', marginBottom: '20px', borderRadius: '15px', border: '2px solid var(--card-border)', fontSize: '15px', outline: 'none', backgroundColor: 'var(--bg-color)', color: 'var(--text-main)', fontWeight: '600' }} 
+              />
+              <button type="submit" className="btn-primary">Save Name</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

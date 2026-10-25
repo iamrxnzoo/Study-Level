@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useApp } from './context/AppContext';
-import { Plus, CheckCircle, Circle, Trash2, Search, Filter, ArrowUpDown, Clock } from 'lucide-react';
+import { Plus, CheckCircle, Circle, Trash2, Search, Filter, ArrowUpDown, Clock, X } from 'lucide-react';
 
 export default function Tasks() {
   const { tasks, user, addTask, toggleTask, deleteTask, addSubject } = useApp();
   const [showForm, setShowForm] = useState(false);
+  const [isSubjectModalOpen, setIsSubjectModalOpen] = useState(false);
+  const [newSubjectName, setNewSubjectName] = useState('');
 
   const availableSubjects = user?.subjects || ["Math", "Science", "English", "Filipino"];
 
@@ -20,11 +22,13 @@ export default function Tasks() {
   const [filterDifficulty, setFilterDifficulty] = useState('All');
   const [sortBy, setSortBy] = useState('Deadline');
 
-  const handleAddNewSubject = async () => {
-    const newSub = window.prompt("Enter a new subject name:");
-    if (newSub && newSub.trim() !== "") {
-      await addSubject(newSub.trim());
-      setSubject(newSub.trim());
+  const handleAddNewSubject = async (e) => {
+    e.preventDefault();
+    if (newSubjectName.trim() !== "") {
+      await addSubject(newSubjectName.trim());
+      setSubject(newSubjectName.trim());
+      setNewSubjectName('');
+      setIsSubjectModalOpen(false);
     }
   };
 
@@ -47,16 +51,9 @@ export default function Tasks() {
     if (difficulty === 'Medium') xpValue = 20;
     if (difficulty === 'High') xpValue = 30;
 
-    // FIXED: Sending snake_case to Supabase to match the database columns
     await addTask({
-      title, 
-      subject, 
-      category, 
-      difficulty, 
-      xp_value: xpValue, 
-      deadline,
-      estimated_time: estimatedTime ? Number(estimatedTime) : 0, 
-      is_completed: false
+      title, subject, category, difficulty, 
+      xp_value: xpValue, deadline, estimated_time: estimatedTime ? Number(estimatedTime) : 0, is_completed: false
     });
 
     setShowForm(false);
@@ -65,14 +62,8 @@ export default function Tasks() {
 
   const filteredAndSortedTasks = useMemo(() => {
     let result = tasks || [];
-    
-    if (searchQuery) {
-      result = result.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()) || t.subject.toLowerCase().includes(searchQuery.toLowerCase()));
-    }
-    if (filterDifficulty !== 'All') {
-      result = result.filter(t => t.difficulty === filterDifficulty);
-    }
-    
+    if (searchQuery) result = result.filter(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()) || t.subject.toLowerCase().includes(searchQuery.toLowerCase()));
+    if (filterDifficulty !== 'All') result = result.filter(t => t.difficulty === filterDifficulty);
     result = [...result].sort((a, b) => {
       if (sortBy === 'Deadline') return new Date(a.deadline) - new Date(b.deadline);
       if (sortBy === 'Difficulty') {
@@ -98,6 +89,7 @@ export default function Tasks() {
         </button>
       </div>
 
+      {/* Search/Filter/Sort */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', backgroundColor: 'var(--card-bg)', borderRadius: '15px', padding: '0 15px', border: '2px solid var(--card-border)' }}>
           <Search size={20} color="var(--text-muted)" />
@@ -124,6 +116,7 @@ export default function Tasks() {
         </div>
       </div>
 
+      {/* Add Task Form */}
       {showForm && (
         <form onSubmit={handleAddTask} style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '20px', marginBottom: '20px', border: '2px solid var(--card-border)', boxShadow: 'var(--card-shadow)' }}>
           {error && <div style={{ backgroundColor: '#ffe6e6', color: '#eb5757', padding: '10px', borderRadius: '10px', marginBottom: '15px', fontSize: '13px', fontWeight: 'bold' }}>{error}</div>}
@@ -136,7 +129,7 @@ export default function Tasks() {
                 <option key={sub} value={sub}>{sub}</option>
               ))}
             </select>
-            <button type="button" onClick={handleAddNewSubject} style={{ backgroundColor: 'var(--chip-bg)', color: 'var(--primary)', border: 'none', borderRadius: '15px', padding: '0 15px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <button type="button" onClick={() => setIsSubjectModalOpen(true)} style={{ backgroundColor: 'var(--chip-bg)', color: 'var(--primary)', border: 'none', borderRadius: '15px', padding: '0 15px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Plus size={16} /> New
             </button>
           </div>
@@ -169,21 +162,43 @@ export default function Tasks() {
         </form>
       )}
 
+      {/* Lists */}
       <h3 style={{ fontSize: '18px', color: 'var(--text-main)', marginBottom: '10px', fontWeight: '700' }}>To Do</h3>
       {todoTasks.length === 0 ? <p style={{ color: 'var(--text-muted)', fontSize: '14px', fontWeight: '600' }}>No tasks found. 🎉</p> : null}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-        {todoTasks.map(task => (
-          <TaskCard key={task.id} task={task} toggleTask={toggleTask} deleteTask={deleteTask} />
-        ))}
+        {todoTasks.map(task => <TaskCard key={task.id} task={task} toggleTask={toggleTask} deleteTask={deleteTask} />)}
       </div>
 
       <h3 style={{ fontSize: '18px', color: 'var(--text-main)', marginBottom: '10px', fontWeight: '700' }}>Completed</h3>
       {completedTasks.length === 0 ? <p style={{ color: 'var(--text-muted)', fontSize: '14px', fontWeight: '600' }}>No completed tasks yet.</p> : null}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {completedTasks.map(task => (
-          <TaskCard key={task.id} task={task} toggleTask={toggleTask} deleteTask={deleteTask} />
-        ))}
+        {completedTasks.map(task => <TaskCard key={task.id} task={task} toggleTask={toggleTask} deleteTask={deleteTask} />)}
       </div>
+
+      {/* ADD SUBJECT MODAL */}
+      {isSubjectModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px', animation: 'fadeIn 0.2s ease' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', width: '100%', maxWidth: '350px', borderRadius: '30px', padding: '25px', border: '2px solid var(--card-border)', animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--text-main)', fontWeight: '700' }}>New Subject</h3>
+              <button onClick={() => setIsSubjectModalOpen(false)} style={{ background: 'var(--chip-bg)', border: 'none', borderRadius: '50%', padding: '8px', cursor: 'pointer', display: 'flex' }}>
+                <X size={20} color="var(--text-main)" />
+              </button>
+            </div>
+            <form onSubmit={handleAddNewSubject}>
+              <input 
+                type="text" 
+                placeholder="e.g. History" 
+                value={newSubjectName} 
+                onChange={e => setNewSubjectName(e.target.value)} 
+                autoFocus
+                style={{ ...inputStyle, marginBottom: '20px' }} 
+              />
+              <button type="submit" className="btn-primary">Add Subject</button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
