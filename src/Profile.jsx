@@ -135,7 +135,7 @@ export default function Profile() {
         <MenuRow icon={<HelpCircle size={20} color="#66d9a0" />} title="Help & Support" subtitle="Get help or contact us" />
       </div>
 
-      <button className="logout-btn" style={{ marginTop: '10px' }} onClick={logOut}>
+            <button className="logout-btn" style={{ marginTop: '10px' }} onClick={() => logOut()}>
         <LogOut size={20} /> Log Out
       </button>
 
