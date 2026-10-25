@@ -121,23 +121,28 @@ export function AppProvider({ children }) {
   const changePetType = (type) => updateProfile({ pet_type: type });
   const changeTheme = (themeId) => updateProfile({ theme: themeId });
   
-  const completeSetup = (realName, petName) => {
-    updateProfile({ name: realName, pet_name: petName, is_setup_complete: true });
-  };
+    const completeSetup = async (realName, petName) => {
+    // 1. Tell Supabase to save the name and mark setup as complete
+    const { error } = await supabase.from('profiles').update({ 
+      name: realName, 
+      pet_name: petName, 
+      is_setup_complete: true 
+    }).eq('id', session.user.id);
 
-  const updateAccessoryPosition = (item, position) => {
-    updateProfile({ accessory_positions: { ...user.accessory_positions, [item]: position } });
-  };
+    if (error) {
+      console.error("Error saving setup:", error);
+      alert("Failed to save your setup. Please try again.");
+      return;
+    }
 
-  const logOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setTasks([]);
+    // 2. Update the local React state so the screen changes instantly
+    setUser(prev => ({ 
+      ...prev, 
+      name: realName, 
+      pet_name: petName, 
+      is_setup_complete: true 
+    }));
   };
-
-  if (loading) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '24px', fontWeight: 'bold' }}>Loading StudyLevel...</div>;
-  }
 
   return (
     <AppContext.Provider value={{ 
