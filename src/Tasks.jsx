@@ -118,8 +118,14 @@ export default function Tasks() {
 
       {/* Add Task Form */}
       {showForm && (
-        <form onSubmit={handleAddTask} style={{ backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '20px', marginBottom: '20px', border: '2px solid var(--card-border)', boxShadow: 'var(--card-shadow)' }}>
-          {error && <div style={{ backgroundColor: '#ffe6e6', color: '#eb5757', padding: '10px', borderRadius: '10px', marginBottom: '15px', fontSize: '13px', fontWeight: 'bold' }}>{error}</div>}
+        <form 
+          onSubmit={handleAddTask} 
+          style={{ 
+            backgroundColor: 'var(--card-bg)', padding: '20px', borderRadius: '20px', marginBottom: '20px', 
+            border: '2px solid var(--card-border)', boxShadow: 'var(--card-shadow)',
+            animation: 'expandHeight 0.3s ease-out', overflow: 'hidden' // <-- ADD THIS
+          }}
+        >          {error && <div style={{ backgroundColor: '#ffe6e6', color: '#eb5757', padding: '10px', borderRadius: '10px', marginBottom: '15px', fontSize: '13px', fontWeight: 'bold' }}>{error}</div>}
 
           <input type="text" placeholder="Task Name" value={title} onChange={e => setTitle(e.target.value)} required style={inputStyle} />
           
@@ -175,10 +181,14 @@ export default function Tasks() {
         {completedTasks.map(task => <TaskCard key={task.id} task={task} toggleTask={toggleTask} deleteTask={deleteTask} />)}
       </div>
 
-      {/* ADD SUBJECT MODAL */}
+    
+    {/* ADD SUBJECT MODAL */}
       {isSubjectModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px', animation: 'fadeIn 0.2s ease' }}>
-          <div style={{ backgroundColor: 'var(--card-bg)', width: '100%', maxWidth: '350px', borderRadius: '30px', padding: '25px', border: '2px solid var(--card-border)', animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+          <div style={{ 
+            backgroundColor: 'var(--card-bg)', width: '100%', maxWidth: '350px', borderRadius: '30px', padding: '25px', border: '2px solid var(--card-border)', 
+            animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' // <-- ADD THIS
+          }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--text-main)', fontWeight: '700' }}>New Subject</h3>
               <button onClick={() => setIsSubjectModalOpen(false)} style={{ background: 'var(--chip-bg)', border: 'none', borderRadius: '50%', padding: '8px', cursor: 'pointer', display: 'flex' }}>

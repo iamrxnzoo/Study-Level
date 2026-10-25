@@ -123,9 +123,14 @@ export default function Calendar() {
         )}
       </div>
 
+      
       {selectedDate && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px' }}>
-          <div style={{ backgroundColor: 'var(--card-bg)', width: '100%', maxWidth: '400px', borderRadius: '30px', padding: '24px', border: '2px solid var(--card-border)' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px', animation: 'fadeIn 0.2s ease' }}>
+          
+        <div style={{ 
+            backgroundColor: 'var(--card-bg)', width: '100%', maxWidth: '400px', borderRadius: '30px', padding: '24px', border: '2px solid var(--card-border)',
+            animation: 'popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)' // <-- ADD THIS
+          }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', color: 'var(--text-main)', fontWeight: '700' }}>Tasks on {formatSelectedDate()}</h3>

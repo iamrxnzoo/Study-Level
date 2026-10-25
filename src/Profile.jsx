@@ -3,16 +3,22 @@ import { useApp } from './context/AppContext';
 import { Bell, HelpCircle, LogOut, Download, Upload, Shield, Lock, X, Check, Edit2, Shirt, ChevronLeft, Paintbrush, Moon } from 'lucide-react';
 
 export default function Profile() {
-  const { user, tasks, analytics, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition, changeTheme, importData, logOut } = useApp();
+  const { user, tasks, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition, changeTheme, logOut } = useApp();
+  
   const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Accessories');
-  const fileInputRef = useRef(null);
   
+  // Rename State
+  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+  const [newPetName, setNewPetName] = useState('');
+
+  // Accessory Adjust State
   const [editingAccessory, setEditingAccessory] = useState(null); 
   const [currentPos, setCurrentPos] = useState({ x: 0, y: 0, rotate: 0, scale: 100 });
 
-  const xpProgress = user.xp % 100;
+  const xpProgress = (user?.xp || 0) % 100;
 
+  // Dynamic Image Loading
   const petFiles = import.meta.glob('/public/images/pets/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
   const accessoryFiles = import.meta.glob('/public/images/accessories/*.{png,jpg,jpeg,svg,jfif}', { eager: true });
 
@@ -28,9 +34,10 @@ export default function Profile() {
   const petChoices = formatFiles(petFiles, 'pets');
   const accessoryChoices = formatFiles(accessoryFiles, 'accessories');
 
-  const currentPetImage = petChoices.find(p => p.id === user.petType)?.src || petChoices[0]?.src;
-  const currentAccessoryImage = accessoryChoices.find(a => a.id === user.equipped)?.src;
-  const activePos = user.accessoryPositions?.[user.equipped] || { x: 0, y: 0, rotate: 0, scale: 100 };
+  // Use Supabase column names (snake_case)
+  const currentPetImage = petChoices.find(p => p.id === user?.pet_type)?.src || petChoices[0]?.src;
+  const currentAccessoryImage = accessoryChoices.find(a => a.id === user?.equipped)?.src;
+  const activePos = user?.accessory_positions?.[user?.equipped] || { x: 0, y: 0, rotate: 0, scale: 100 };
 
   const premiumItems = {
     wizard_hat: { reqLevel: 2, text: "Lvl 2" },
@@ -39,7 +46,7 @@ export default function Profile() {
   };
 
   const isUnlocked = (itemId) => {
-    if (premiumItems[itemId]) return user.level >= premiumItems[itemId].reqLevel;
+    if (premiumItems[itemId]) return (user?.level || 1) >= premiumItems[itemId].reqLevel;
     return true; 
   };
 
@@ -47,12 +54,7 @@ export default function Profile() {
     return premiumItems[itemId] ? premiumItems[itemId].text : null;
   };
 
-    // Add this to the top of your component state
-  const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
-  const [newPetName, setNewPetName] = useState('');
-
-  // Replace the handleRename function with this:
-  const handleRename = async (e) => {
+  const handleRenameSubmit = async (e) => {
     e.preventDefault();
     if (newPetName.trim() !== "") {
       await renameMochi(newPetName.trim());
@@ -61,48 +63,9 @@ export default function Profile() {
     }
   };
 
-  // Update the button to open the modal instead of the prompt
-  // Find the Edit2 button and change its onClick:
-  <button onClick={() => { setNewPetName(user.petName); setIsRenameModalOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
-    <Edit2 size={18} color="var(--text-muted)" />
-  </button>
-
-  const handleExportData = () => {
-    const dataToExport = { user, tasks, analytics, exportedAt: new Date().toISOString() };
-    const dataStr = JSON.stringify(dataToExport, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `StudyLevel_Data_${user.name}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImportData = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const json = JSON.parse(e.target.result);
-        importData(json);
-        alert("Data imported successfully! Refreshing...");
-        window.location.reload();
-      } catch (error) {
-        alert("Invalid JSON file.");
-      }
-    };
-    reader.readAsText(file);
-    event.target.value = null; // reset input
-  };
-
   const handleStartAdjusting = (accessoryId) => {
     equipCosmetic(accessoryId);
-    setCurrentPos(user.accessoryPositions?.[accessoryId] || { x: 0, y: 0, rotate: 0, scale: 100 });
+    setCurrentPos(user.accessory_positions?.[accessoryId] || { x: 0, y: 0, rotate: 0, scale: 100 });
     setEditingAccessory(accessoryId);
   };
 
@@ -114,6 +77,7 @@ export default function Profile() {
   return (
     <div style={{ padding: '0 20px 20px 20px' }}>
       
+      {/* Header */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px', marginTop: '10px' }}>
         
         <div style={{ width: '140px', height: '140px', backgroundColor: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '15px', position: 'relative', border: '4px solid var(--card-border)', boxShadow: 'var(--card-shadow)', overflow: 'hidden' }}>
@@ -132,12 +96,12 @@ export default function Profile() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <h2 style={{ margin: 0, fontSize: '26px', fontWeight: '700', color: 'var(--text-main)' }}>{user.petName || "Mochi"}</h2>
-          <button onClick={handleRename} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
+          <h2 style={{ margin: 0, fontSize: '26px', fontWeight: '700', color: 'var(--text-main)' }}>{user?.pet_name || "Mochi"}</h2>
+          <button onClick={() => { setNewPetName(user?.pet_name || 'Mochi'); setIsRenameModalOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
             <Edit2 size={18} color="var(--text-muted)" />
           </button>
         </div>
-        <p style={{ margin: '4px 0 10px 0', fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>Level {user.level} • {xpProgress}/100 XP</p>
+        <p style={{ margin: '4px 0 10px 0', fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>Level {user?.level} • {xpProgress}/100 XP</p>
         
         <button 
           onClick={() => setIsWardrobeOpen(true)}
@@ -147,6 +111,7 @@ export default function Profile() {
         </button>
       </div>
 
+      {/* Menu List */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <MenuRow icon={<Shield size={20} color="var(--primary)" />} title="Account Information" subtitle="View and edit your details" />
         <MenuRow icon={<Bell size={20} color="var(--chip-color)" />} title="Notifications" subtitle="Manage your notifications" />
@@ -157,7 +122,7 @@ export default function Profile() {
             <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>Theme</h4>
           </div>
           <select 
-            value={user.theme || 'cute'} 
+            value={user?.theme || 'cute'} 
             onChange={(e) => changeTheme(e.target.value)}
             style={{ padding: '8px', borderRadius: '10px', border: '2px solid var(--card-border)', backgroundColor: 'var(--bg-color)', color: 'var(--text-main)', fontWeight: '600', outline: 'none', fontSize: '13px' }}
           >
@@ -168,28 +133,35 @@ export default function Profile() {
         </div>
 
         <MenuRow icon={<HelpCircle size={20} color="#66d9a0" />} title="Help & Support" subtitle="Get help or contact us" />
-        
-        <div onClick={handleExportData} style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', cursor: 'pointer', borderTop: '1px solid var(--card-border)' }}>
-          <div style={{ marginRight: '15px', backgroundColor: 'var(--chip-bg)', padding: '8px', borderRadius: '10px' }}><Download size={20} color="var(--primary)" /></div>
-          <div style={{ flex: 1 }}>
-            <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>Export Research Data</h4>
-            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>Download your data as JSON</p>
-          </div>
-        </div>
-
-        <div onClick={() => fileInputRef.current.click()} style={{ display: 'flex', alignItems: 'center', padding: '15px 20px', cursor: 'pointer', borderTop: '1px solid var(--card-border)' }}>
-          <div style={{ marginRight: '15px', backgroundColor: 'var(--chip-bg)', padding: '8px', borderRadius: '10px' }}><Upload size={20} color="var(--primary)" /></div>
-          <div style={{ flex: 1 }}>
-            <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>Import Data</h4>
-            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>Restore from a JSON backup</p>
-          </div>
-        </div>
-        <input type="file" accept=".json" ref={fileInputRef} onChange={handleImportData} style={{ display: 'none' }} />
       </div>
 
       <button className="logout-btn" style={{ marginTop: '10px' }} onClick={logOut}>
         <LogOut size={20} /> Log Out
       </button>
+
+      {/* RENAME MODAL */}
+      {isRenameModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px', animation: 'fadeIn 0.2s ease' }}>
+          <div style={{ backgroundColor: 'var(--card-bg)', width: '100%', maxWidth: '350px', borderRadius: '30px', padding: '25px', border: '2px solid var(--card-border)', animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--text-main)', fontWeight: '700' }}>Rename Pet</h3>
+              <button onClick={() => setIsRenameModalOpen(false)} style={{ background: 'var(--chip-bg)', border: 'none', borderRadius: '50%', padding: '8px', cursor: 'pointer', display: 'flex' }}>
+                <X size={20} color="var(--text-main)" />
+              </button>
+            </div>
+            <form onSubmit={handleRenameSubmit}>
+              <input 
+                type="text" 
+                value={newPetName} 
+                onChange={e => setNewPetName(e.target.value)} 
+                autoFocus
+                style={{ width: '100%', padding: '15px', marginBottom: '20px', borderRadius: '15px', border: '2px solid var(--card-border)', fontSize: '15px', outline: 'none', backgroundColor: 'var(--bg-color)', color: 'var(--text-main)', fontWeight: '600' }} 
+              />
+              <button type="submit" className="btn-primary">Save Name</button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* WARDROBE MODAL */}
       {isWardrobeOpen && (
@@ -210,7 +182,7 @@ export default function Profile() {
                   <ChevronLeft size={20} /> Back
                 </button>
               ) : (
-                <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--text-main)', fontWeight: '700' }}>Customize {user.petName}</h3>
+                <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--text-main)', fontWeight: '700' }}>Customize {user?.pet_name}</h3>
               )}
               
               <button onClick={() => { setIsWardrobeOpen(false); setEditingAccessory(null); }} style={{ background: 'var(--card-bg)', border: '2px solid var(--card-border)', borderRadius: '50%', padding: '8px', cursor: 'pointer', display: 'flex' }}>
@@ -247,7 +219,7 @@ export default function Profile() {
                             image={item.src} 
                             name={item.name} 
                             isUnlocked={isUnlocked(item.id)} 
-                            isEquipped={user.equipped === item.id} 
+                            isEquipped={user?.equipped === item.id} 
                             onClick={() => handleStartAdjusting(item.id)}
                             req={getRequirementText(item.id)} 
                           />
@@ -275,7 +247,7 @@ export default function Profile() {
                           image={item.src} 
                           name={item.name} 
                           isUnlocked={true} 
-                          isEquipped={user.petType === item.id} 
+                          isEquipped={user?.pet_type === item.id} 
                           onClick={() => changePetType(item.id)} 
                         />
                       ))}
@@ -284,9 +256,9 @@ export default function Profile() {
 
                   {activeTab === 'Titles' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <TitleItem title="Beginner" isEquipped={user.equippedTitle === 'Beginner'} onClick={() => equipTitle('Beginner')} />
-                      <TitleItem title="Task Master" isEquipped={user.equippedTitle === 'Task Master'} onClick={() => equipTitle('Task Master')} />
-                      <TitleItem title="Night Owl" isEquipped={user.equippedTitle === 'Night Owl'} onClick={() => equipTitle('Night Owl')} isLocked={true} />
+                      <TitleItem title="Beginner" isEquipped={user?.equipped_title === 'Beginner'} onClick={() => equipTitle('Beginner')} />
+                      <TitleItem title="Task Master" isEquipped={user?.equipped_title === 'Task Master'} onClick={() => equipTitle('Task Master')} />
+                      <TitleItem title="Night Owl" isEquipped={user?.equipped_title === 'Night Owl'} onClick={() => equipTitle('Night Owl')} isLocked={true} />
                     </div>
                   )}
                 </>
@@ -413,29 +385,6 @@ function MenuRow({ icon, title, subtitle }) {
         <h4 style={{ margin: 0, fontSize: '15px', color: 'var(--text-main)', fontWeight: '700' }}>{title}</h4>
         <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>{subtitle}</p>
       </div>
-            {/* RENAME MODAL */}
-      {isRenameModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '20px', animation: 'fadeIn 0.2s ease' }}>
-          <div style={{ backgroundColor: 'var(--card-bg)', width: '100%', maxWidth: '350px', borderRadius: '30px', padding: '25px', border: '2px solid var(--card-border)', animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: '20px', color: 'var(--text-main)', fontWeight: '700' }}>Rename Pet</h3>
-              <button onClick={() => setIsRenameModalOpen(false)} style={{ background: 'var(--chip-bg)', border: 'none', borderRadius: '50%', padding: '8px', cursor: 'pointer', display: 'flex' }}>
-                <X size={20} color="var(--text-main)" />
-              </button>
-            </div>
-            <form onSubmit={handleRename}>
-              <input 
-                type="text" 
-                value={newPetName} 
-                onChange={e => setNewPetName(e.target.value)} 
-                autoFocus
-                style={{ width: '100%', padding: '15px', marginBottom: '20px', borderRadius: '15px', border: '2px solid var(--card-border)', fontSize: '15px', outline: 'none', backgroundColor: 'var(--bg-color)', color: 'var(--text-main)', fontWeight: '600' }} 
-              />
-              <button type="submit" className="btn-primary">Save Name</button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
