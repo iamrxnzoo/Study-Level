@@ -10,27 +10,40 @@ export default function Dashboard() {
     const id = fileName.split('.')[0];
     return { id, src: `/images/pets/${fileName}` };
   });
-  const currentPetImage = petChoices.find(p => p.id === user.petType)?.src || petChoices[0]?.src;
+  const currentPetImage = petChoices.find(p => p.id === user?.pet_type)?.src || petChoices[0]?.src;
 
   const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.isCompleted).length;
+  const completedTasks = tasks.filter(t => t.is_completed).length;
   const todayString = new Date().toDateString();
-  const dueTodayCount = tasks.filter(t => !t.isCompleted && new Date(t.deadline).toDateString() === todayString).length;
+  const dueTodayCount = tasks.filter(t => !t.is_completed && new Date(t.deadline).toDateString() === todayString).length;
   
+  // FIXED: Weekly Progress Logic
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-  const completedThisWeek = tasks.filter(t => t.isCompleted && new Date(t.completedAt || Date.now()) >= oneWeekAgo).length;
-  const totalThisWeek = tasks.filter(t => new Date(t.deadline) >= oneWeekAgo).length;
+  oneWeekAgo.setHours(0,0,0,0); // Start of the day 7 days ago
+
+  const completedThisWeek = tasks.filter(t => {
+    if (!t.is_completed || !t.completed_at) return false;
+    // Check if the completion date is within the last 7 days
+    return new Date(t.completed_at) >= oneWeekAgo;
+  }).length;
+
+  const totalThisWeek = tasks.filter(t => {
+    // Count all tasks created or due in the last 7 days
+    const taskDate = t.created_at ? new Date(t.created_at) : new Date(t.deadline);
+    return taskDate >= oneWeekAgo;
+  }).length;
+
   const weeklyProgress = totalThisWeek === 0 ? 0 : Math.round((completedThisWeek / totalThisWeek) * 100);
 
-  const xpProgress = user.xp % 100; 
+  const xpProgress = (user?.xp || 0) % 100; 
 
   return (
     <div style={{ padding: '0 20px 20px 20px' }}>
       
       <div style={{ marginBottom: '25px', textAlign: 'center' }}>
         <h1 style={{ fontSize: '26px', fontWeight: '700', color: 'var(--primary)', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-          Good morning, {user.name}! <Sparkles size={22} color="var(--secondary)" />
+          Good morning, {user?.name}! <Sparkles size={22} color="var(--secondary)" />
         </h1>
         <p style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: '600', marginTop: '5px' }}>Let's make today super productive! 🌸</p>
       </div>
@@ -45,14 +58,13 @@ export default function Dashboard() {
         </div>
 
         <p style={{ margin: '0 0 5px 0', fontSize: '15px', fontWeight: '600', color: 'var(--text-muted)' }}>Your Study Level</p>
-        <h2 style={{ margin: '0 0 15px 0', fontSize: '36px', fontWeight: '700', color: 'var(--text-main)' }}>Level {user.level}</h2>
+        <h2 style={{ margin: '0 0 15px 0', fontSize: '36px', fontWeight: '700', color: 'var(--text-main)' }}>Level {user?.level}</h2>
         
         <div style={{ background: 'var(--chip-bg)', borderRadius: '15px', padding: '12px', position: 'relative', zIndex: 1, width: '75%', border: '2px solid var(--card-border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: '700', marginBottom: '8px', color: 'var(--text-main)' }}>
             <span>{xpProgress} / 100 XP</span>
           </div>
           <div style={{ width: '100%', height: '12px', backgroundColor: 'var(--card-border)', borderRadius: '6px' }}>
-            {/* THE XP BAR uses primary color now */}
             <div style={{ width: `${xpProgress}%`, height: '100%', backgroundColor: 'var(--primary)', borderRadius: '6px', transition: 'width 0.3s', boxShadow: '0 0 10px var(--primary)' }}></div>
           </div>
         </div>
@@ -79,9 +91,9 @@ export default function Dashboard() {
         
         <div className="card" style={{ padding: '15px 5px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 0, border: '2px solid var(--card-border)', position: 'relative' }}>
           <div style={{ backgroundColor: 'var(--chip-bg)', padding: '10px', borderRadius: '15px', marginBottom: '8px' }}><Flame size={20} color="#EB5757" /></div>
-          <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: 'var(--text-main)' }}>{user.streak}</h3>
+          <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700', color: 'var(--text-main)' }}>{user?.streak}</h3>
           <p className="text-chip" style={{ margin: '5px 0 0 0', fontSize: '10px' }}>Streak</p>
-          {user.streakFreezes > 0 && (
+          {(user?.streak_freezes > 0) && (
              <div style={{ position: 'absolute', top: '-8px', right: '-8px', backgroundColor: 'var(--primary)', color: 'var(--text-on-primary)', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', border: '2px solid var(--card-border)' }}>❄️</div>
           )}
         </div>
