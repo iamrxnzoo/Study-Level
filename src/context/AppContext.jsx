@@ -1,193 +1,151 @@
 import { createContext, useState, useEffect, useContext } from 'react';
+import { supabase } from '../supabaseClient';
 
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  const [tasks, setTasks] = useState(() => {
-    const saved = localStorage.getItem('studylevel_tasks');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [session, setSession] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  const [tasks, setTasks] = useState([]);
+  const [user, setUser] = useState(null);
 
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('studylevel_user');
-    return saved ? JSON.parse(saved) : { 
-      name: "Student", 
-      level: 1, 
-      xp: 0, 
-      streak: 0, 
-      lastActiveDate: null, 
-      streakFreezes: 1,
-      inventory: [], 
-      equipped: "default",
-      unlockedTitles: ["Beginner"],
-      equippedTitle: "Beginner",
-      petName: "Mochi",
-      petType: "cat",
-      subjects: ["Math", "Science", "English", "Filipino"],
-      accessoryPositions: {},
-      isSetupComplete: false,
-      theme: 'cute'
-    };
-  });
-
-  const [analytics, setAnalytics] = useState(() => {
-    const saved = localStorage.getItem('studylevel_analytics');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  useEffect(() => { localStorage.setItem('studylevel_tasks', JSON.stringify(tasks)); }, [tasks]);
-  useEffect(() => { localStorage.setItem('studylevel_user', JSON.stringify(user)); }, [user]);
-  useEffect(() => { localStorage.setItem('studylevel_analytics', JSON.stringify(analytics)); }, [analytics]);
-
-  const logEvent = (action, details = "") => {
-    setAnalytics(prev => [...prev, { timestamp: new Date().toISOString(), action, details }]);
-  };
-
-  // STREAK CHECKER
+  // 1. Check Auth State on Load
   useEffect(() => {
-    if (!user.lastActiveDate) return; 
-    const today = new Date(); today.setHours(0,0,0,0);
-    const lastActive = new Date(user.lastActiveDate); lastActive.setHours(0,0,0,0);
-    const diffInDays = Math.round((today.getTime() - lastActive.getTime()) / (1000 * 3600 * 24));
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (!session) setLoading(false);
+    });
 
-    if (diffInDays > 1) {
-      if (user.streakFreezes > 0) {
-        setUser(prev => ({ ...prev, streakFreezes: prev.streakFreezes - 1, lastActiveDate: new Date(today.getTime() - 86400000).toISOString() }));
-        logEvent("STREAK_FREEZE_USED");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // 2. Fetch Data when logged in
+  useEffect(() => {
+    if (!session) return;
+
+    const fetchData = async () => {
+      // Fetch Tasks
+      const { data: tasksData } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+      if (tasksData) setTasks(tasksData);
+
+      // Fetch Profile (or create one if it doesn't exist)
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+      
+      if (profileData) {
+        setUser(profileData);
       } else {
-        setUser(prev => ({ ...prev, streak: 0 }));
-        logEvent("STREAK_LOST");
+        // Default profile for new users
+        const newUser = {
+          id: session.user.id,
+          name: "Student",
+          level: 1,
+          xp: 0,
+          streak: 0,
+          pet_name: "Mochi",
+          pet_type: "cat",
+          streak_freezes: 1,
+          inventory: [],
+          equipped: "default",
+          equipped_title: "Beginner",
+          theme: "cute",
+          is_setup_complete: false,
+          accessory_positions: {}
+        };
+        await supabase.from('profiles').insert([newUser]);
+        setUser(newUser);
       }
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [session]);
+
+  // Update Profile Helper
+  const updateProfile = async (updates) => {
+    setUser(prev => ({ ...prev, ...updates }));
+    if (session) {
+      await supabase.from('profiles').update(updates).eq('id', session.user.id);
     }
-  }, []); 
-
-  const completeSetup = (realName, petName) => {
-    setUser(prev => ({ 
-      ...prev, 
-      name: realName || "Student", 
-      petName: petName || "Mochi", 
-      isSetupComplete: true 
-    }));
-    logEvent("SETUP_COMPLETE", `Name: ${realName}, Pet: ${petName}`);
   };
 
-  const changeTheme = (themeId) => {
-    setUser(prev => ({ ...prev, theme: themeId }));
-    logEvent("THEME_CHANGED", themeId);
+  // Add Task
+  const addTask = async (task) => {
+    const { data, error } = await supabase.from('tasks').insert([{ ...task, user_id: session.user.id }]).select();
+    if (data) setTasks(prev => [data[0], ...prev]);
   };
 
-  const importData = (data) => {
-    if (data.tasks) setTasks(data.tasks);
-    if (data.user) setUser(data.user);
-    if (data.analytics) setAnalytics(data.analytics);
-    logEvent("DATA_IMPORTED");
-  };
-
-  const addTask = (task) => {
-    setTasks(prev => [...prev, task]);
-    logEvent("TASK_ADDED", task.title);
-  };
-
-  const toggleTask = (id) => {
+  // Toggle Task
+  const toggleTask = async (id) => {
     const taskToToggle = tasks.find(t => t.id === id);
     if (!taskToToggle) return;
 
-    const isNowCompleted = !taskToToggle.isCompleted;
-    const xpChange = isNowCompleted ? taskToToggle.xpValue : -taskToToggle.xpValue;
+    const isNowCompleted = !taskToToggle.is_completed;
+    const xpChange = isNowCompleted ? taskToToggle.xp_value : -taskToToggle.xp_value;
 
-    setTasks(prevTasks => prevTasks.map(task => 
-      task.id === id ? { ...task, isCompleted: isNowCompleted, completedAt: isNowCompleted ? new Date().toISOString() : null } : task
-    ));
+    // Update Local State for instant feel
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, is_completed: isNowCompleted, completed_at: isNowCompleted ? new Date().toISOString() : null } : t));
+    
+    // Update XP
+    const newXp = Math.max(0, user.xp + xpChange);
+    const newLevel = Math.floor(newXp / 100) + 1;
+    updateProfile({ xp: newXp, level: newLevel });
 
-    setUser(prevUser => {
-      const newXp = Math.max(0, prevUser.xp + xpChange);
-      const newLevel = Math.floor(newXp / 100) + 1;
-      let newInventory = [...prevUser.inventory];
-      
-      if (newLevel >= 2 && !newInventory.includes('wizard_hat')) {
-        newInventory.push('wizard_hat');
-        logEvent("REWARD_UNLOCKED", "wizard_hat");
-      }
-      if (newLevel >= 3 && !newInventory.includes('glasses')) {
-        newInventory.push('glasses');
-        logEvent("REWARD_UNLOCKED", "glasses");
-      }
-
-      return { ...prevUser, xp: newXp, level: newLevel, inventory: newInventory };
-    });
-
-    if (isNowCompleted) {
-      logEvent("TASK_COMPLETED", taskToToggle.title);
-      const today = new Date(); today.setHours(0,0,0,0);
-      setUser(prevUser => {
-        if (prevUser.lastActiveDate) {
-          const lastActive = new Date(prevUser.lastActiveDate); lastActive.setHours(0,0,0,0);
-          if (lastActive.getTime() === today.getTime()) return prevUser;
-        }
-        return { ...prevUser, streak: prevUser.streak + 1, lastActiveDate: today.toISOString() };
-      });
-    } else {
-      logEvent("TASK_UNDONE", taskToToggle.title);
-    }
+    // Update Database
+    await supabase.from('tasks').update({ 
+      is_completed: isNowCompleted, 
+      completed_at: isNowCompleted ? new Date().toISOString() : null 
+    }).eq('id', id);
   };
 
-  const deleteTask = (id) => {
+  // Delete Task
+  const deleteTask = async (id) => {
     const taskToDelete = tasks.find(t => t.id === id);
-    if (taskToDelete && taskToDelete.isCompleted) {
-      setUser(prevUser => {
-        const newXp = Math.max(0, prevUser.xp - taskToDelete.xpValue);
-        const newLevel = Math.floor(newXp / 100) + 1;
-        return { ...prevUser, xp: newXp, level: newLevel };
-      });
+    if (taskToDelete?.is_completed) {
+      const newXp = Math.max(0, user.xp - taskToDelete.xp_value);
+      const newLevel = Math.floor(newXp / 100) + 1;
+      updateProfile({ xp: newXp, level: newLevel });
     }
     setTasks(prev => prev.filter(t => t.id !== id));
-    logEvent("TASK_DELETED", taskToDelete?.title || "Unknown");
+    await supabase.from('tasks').delete().eq('id', id);
   };
 
-  const equipCosmetic = (item) => {
-    setUser(prev => ({ ...prev, equipped: item }));
-    logEvent("COSMETIC_EQUIPPED", item);
+  // Profile Updates
+  const equipCosmetic = (item) => updateProfile({ equipped: item });
+  const equipTitle = (title) => updateProfile({ equipped_title: title });
+  const renameMochi = (newName) => updateProfile({ pet_name: newName });
+  const changePetType = (type) => updateProfile({ pet_type: type });
+  const changeTheme = (themeId) => updateProfile({ theme: themeId });
+  
+  const completeSetup = (realName, petName) => {
+    updateProfile({ name: realName, pet_name: petName, is_setup_complete: true });
   };
 
   const updateAccessoryPosition = (item, position) => {
-    setUser(prev => {
-      const currentPositions = prev.accessoryPositions || {};
-      return {
-        ...prev,
-        accessoryPositions: {
-          ...currentPositions,
-          [item]: position
-        }
-      };
-    });
+    updateProfile({ accessory_positions: { ...user.accessory_positions, [item]: position } });
   };
 
-  const equipTitle = (title) => {
-    setUser(prev => ({ ...prev, equippedTitle: title }));
-    logEvent("TITLE_EQUIPPED", title);
+  const logOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setTasks([]);
   };
 
-  const renameMochi = (newName) => {
-    setUser(prev => ({ ...prev, petName: newName }));
-    logEvent("MOCHI_RENAMED", newName);
-  };
-
-  const changePetType = (type) => {
-    setUser(prev => ({ ...prev, petType: type }));
-    logEvent("PET_TYPE_CHANGED", type);
-  };
-
-  const addSubject = (subject) => {
-    if (!subject.trim()) return;
-    setUser(prev => {
-      if (prev.subjects.includes(subject.trim())) return prev;
-      return { ...prev, subjects: [...prev.subjects, subject.trim()] };
-    });
-    logEvent("SUBJECT_ADDED", subject);
-  };
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '24px', fontWeight: 'bold' }}>Loading StudyLevel...</div>;
+  }
 
   return (
-    <AppContext.Provider value={{ tasks, user, analytics, addTask, toggleTask, deleteTask, equipCosmetic, equipTitle, renameMochi, changePetType, addSubject, updateAccessoryPosition, completeSetup, changeTheme, importData }}>
+    <AppContext.Provider value={{ 
+      session, user, tasks, 
+      addTask, toggleTask, deleteTask, 
+      equipCosmetic, equipTitle, renameMochi, changePetType, changeTheme, 
+      completeSetup, updateAccessoryPosition, logOut 
+    }}>
       {children}
     </AppContext.Provider>
   );

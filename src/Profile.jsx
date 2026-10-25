@@ -172,7 +172,7 @@ export default function Profile() {
         <input type="file" accept=".json" ref={fileInputRef} onChange={handleImportData} style={{ display: 'none' }} />
       </div>
 
-      <button className="logout-btn" style={{ marginTop: '10px' }}>
+            <button className="logout-btn" style={{ marginTop: '10px' }} onClick={logOut}>
         <LogOut size={20} /> Log Out
       </button>
 
