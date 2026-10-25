@@ -4,7 +4,9 @@ import { themes } from './themes';
 
 export default function ThemeWrapper({ children }) {
   const { user } = useApp();
-  const activeTheme = themes[user.theme] || themes.cute;
+  
+  // FIX: Use optional chaining (user?.theme) so it doesn't crash if user is null
+  const activeTheme = themes[user?.theme] || themes.cute;
 
   useEffect(() => {
     const root = document.documentElement;
@@ -29,7 +31,6 @@ export default function ThemeWrapper({ children }) {
     root.style.setProperty('--chip-bg', activeTheme.chipBg);
     root.style.setProperty('--chip-color', activeTheme.chipColor);
 
-    // Handle background image for space theme
     if (activeTheme.id === 'space') {
       document.body.style.backgroundImage = activeTheme.bgPattern;
       document.body.style.backgroundSize = 'cover';
