@@ -3,7 +3,7 @@ import { useApp } from './context/AppContext';
 import { Plus, CheckCircle, Circle, Trash2, Search, Filter, ArrowUpDown, Clock } from 'lucide-react';
 
 export default function Tasks() {
-  const { tasks, user, addTask, toggleTask, deleteTask, addSubject } = useApp();
+    const { tasks, user, addTask, toggleTask, deleteTask, addSubject } = useApp();
   const [showForm, setShowForm] = useState(false);
 
   const [title, setTitle] = useState('');
@@ -18,11 +18,11 @@ export default function Tasks() {
   const [filterDifficulty, setFilterDifficulty] = useState('All');
   const [sortBy, setSortBy] = useState('Deadline');
 
-  const handleAddNewSubject = () => {
+   const handleAddNewSubject = async () => {
     const newSub = window.prompt("Enter a new subject name:");
     if (newSub && newSub.trim() !== "") {
-      addSubject(newSub.trim());
-      setSubject(newSub.trim());
+      await addSubject(newSub.trim()); // Save to database
+      setSubject(newSub.trim()); // Select it immediately
     }
   };
 

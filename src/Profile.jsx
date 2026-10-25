@@ -3,7 +3,7 @@ import { useApp } from './context/AppContext';
 import { Bell, HelpCircle, LogOut, Download, Upload, Shield, Lock, X, Check, Edit2, Shirt, ChevronLeft, Paintbrush, Moon } from 'lucide-react';
 
 export default function Profile() {
-  const { user, tasks, analytics, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition, changeTheme, importData } = useApp();
+  const { user, tasks, analytics, equipCosmetic, equipTitle, renameMochi, changePetType, updateAccessoryPosition, changeTheme, importData, logOut } = useApp();
   const [isWardrobeOpen, setIsWardrobeOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Accessories');
   const fileInputRef = useRef(null);
@@ -172,7 +172,7 @@ export default function Profile() {
         <input type="file" accept=".json" ref={fileInputRef} onChange={handleImportData} style={{ display: 'none' }} />
       </div>
 
-            <button className="logout-btn" style={{ marginTop: '10px' }} onClick={logOut}>
+      <button className="logout-btn" style={{ marginTop: '10px' }} onClick={logOut}>
         <LogOut size={20} /> Log Out
       </button>
 
