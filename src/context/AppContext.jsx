@@ -33,13 +33,13 @@ export function AppProvider({ children }) {
       const { data: tasksData } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
       if (tasksData) setTasks(tasksData);
 
-      // Fetch Profile (or create one if it doesn't exist)
-      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+      // Fetch Profile
+      const { data: profileData, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
       
       if (profileData) {
         setUser(profileData);
-      } else {
-        // Default profile for new users
+      } else if (error && error.code === 'PGRST116') { 
+        // PGRST116 means "no rows found", so we create a new profile
         const newUser = {
           id: session.user.id,
           name: "Student",
@@ -54,9 +54,11 @@ export function AppProvider({ children }) {
           equipped_title: "Beginner",
           theme: "cute",
           is_setup_complete: false,
-          accessory_positions: {}
+          accessory_positions: {},
+          subjects: ["Math", "Science", "English", "Filipino"]
         };
-        await supabase.from('profiles').insert([newUser]);
+        const { error: insertError } = await supabase.from('profiles').insert([newUser]);
+        if (insertError) console.error("Error creating profile:", insertError);
         setUser(newUser);
       }
       setLoading(false);
@@ -73,56 +75,7 @@ export function AppProvider({ children }) {
     }
   };
 
-  // Add Task
-  const addTask = async (task) => {
-    const { data, error } = await supabase.from('tasks').insert([{ ...task, user_id: session.user.id }]).select();
-    if (data) setTasks(prev => [data[0], ...prev]);
-  };
-
-  // Toggle Task
-  const toggleTask = async (id) => {
-    const taskToToggle = tasks.find(t => t.id === id);
-    if (!taskToToggle) return;
-
-    const isNowCompleted = !taskToToggle.is_completed;
-    const xpChange = isNowCompleted ? taskToToggle.xp_value : -taskToToggle.xp_value;
-
-    // Update Local State for instant feel
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, is_completed: isNowCompleted, completed_at: isNowCompleted ? new Date().toISOString() : null } : t));
-    
-    // Update XP
-    const newXp = Math.max(0, user.xp + xpChange);
-    const newLevel = Math.floor(newXp / 100) + 1;
-    updateProfile({ xp: newXp, level: newLevel });
-
-    // Update Database
-    await supabase.from('tasks').update({ 
-      is_completed: isNowCompleted, 
-      completed_at: isNowCompleted ? new Date().toISOString() : null 
-    }).eq('id', id);
-  };
-
-  // Delete Task
-  const deleteTask = async (id) => {
-    const taskToDelete = tasks.find(t => t.id === id);
-    if (taskToDelete?.is_completed) {
-      const newXp = Math.max(0, user.xp - taskToDelete.xp_value);
-      const newLevel = Math.floor(newXp / 100) + 1;
-      updateProfile({ xp: newXp, level: newLevel });
-    }
-    setTasks(prev => prev.filter(t => t.id !== id));
-    await supabase.from('tasks').delete().eq('id', id);
-  };
-
-  // Profile Updates
-  const equipCosmetic = (item) => updateProfile({ equipped: item });
-  const equipTitle = (title) => updateProfile({ equipped_title: title });
-  const renameMochi = (newName) => updateProfile({ pet_name: newName });
-  const changePetType = (type) => updateProfile({ pet_type: type });
-  const changeTheme = (themeId) => updateProfile({ theme: themeId });
-  
-    const completeSetup = async (realName, petName) => {
-    // 1. Tell Supabase to save the name and mark setup as complete
+  const completeSetup = async (realName, petName) => {
     const { error } = await supabase.from('profiles').update({ 
       name: realName, 
       pet_name: petName, 
@@ -135,7 +88,6 @@ export function AppProvider({ children }) {
       return;
     }
 
-    // 2. Update the local React state so the screen changes instantly
     setUser(prev => ({ 
       ...prev, 
       name: realName, 
@@ -144,12 +96,73 @@ export function AppProvider({ children }) {
     }));
   };
 
+  const addTask = async (task) => {
+    const { data, error } = await supabase.from('tasks').insert([{ ...task, user_id: session.user.id }]).select();
+    if (data) setTasks(prev => [data[0], ...prev]);
+  };
+
+  const toggleTask = async (id) => {
+    const taskToToggle = tasks.find(t => t.id === id);
+    if (!taskToToggle) return;
+
+    const isNowCompleted = !taskToToggle.is_completed;
+    const xpChange = isNowCompleted ? taskToToggle.xp_value : -taskToToggle.xp_value;
+
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, is_completed: isNowCompleted, completed_at: isNowCompleted ? new Date().toISOString() : null } : t));
+    
+    const newXp = Math.max(0, user.xp + xpChange);
+    const newLevel = Math.floor(newXp / 100) + 1;
+    updateProfile({ xp: newXp, level: newLevel });
+
+    await supabase.from('tasks').update({ 
+      is_completed: isNowCompleted, 
+      completed_at: isNowCompleted ? new Date().toISOString() : null 
+    }).eq('id', id);
+  };
+
+  const deleteTask = async (id) => {
+    const taskToDelete = tasks.find(t => t.id === id);
+    if (taskToDelete?.is_completed) {
+      const newXp = Math.max(0, user.xp - taskToDelete.xp_value);
+      const newLevel = Math.floor(newXp / 100) + 1;
+      updateProfile({ xp: newXp, level: newLevel });
+    }
+    setTasks(prev => prev.filter(t => t.id !== id));
+    await supabase.from('tasks').delete().eq('id', id);
+  };
+
+  const equipCosmetic = (item) => updateProfile({ equipped: item });
+  const equipTitle = (title) => updateProfile({ equipped_title: title });
+  const renameMochi = (newName) => updateProfile({ pet_name: newName });
+  const changePetType = (type) => updateProfile({ pet_type: type });
+  const changeTheme = (themeId) => updateProfile({ theme: themeId });
+  
+  const updateAccessoryPosition = (item, position) => {
+    updateProfile({ accessory_positions: { ...user.accessory_positions, [item]: position } });
+  };
+
+  const addSubject = (subject) => {
+    if (!subject.trim()) return;
+    const newSubjects = user.subjects.includes(subject) ? user.subjects : [...user.subjects, subject];
+    updateProfile({ subjects: newSubjects });
+  };
+
+  const logOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setTasks([]);
+  };
+
+  if (loading) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '24px', fontWeight: 'bold', color: '#5b8def' }}>Loading StudyLevel...</div>;
+  }
+
   return (
     <AppContext.Provider value={{ 
       session, user, tasks, 
       addTask, toggleTask, deleteTask, 
       equipCosmetic, equipTitle, renameMochi, changePetType, changeTheme, 
-      completeSetup, updateAccessoryPosition, logOut 
+      completeSetup, updateAccessoryPosition, addSubject, logOut 
     }}>
       {children}
     </AppContext.Provider>
